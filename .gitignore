@@ -1,0 +1,6 @@
+.idea/
+venv/
+__pycache__/
+*.xlsx
+*.json
+_extra*
