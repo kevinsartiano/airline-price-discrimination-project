@@ -116,4 +116,4 @@ if __name__ == '__main__':
     args = parse_args()
     basic_search_flight(origin=args.origin, destination=args.destination,
                         departure_date=args.departure_date, return_date=args.return_date)
-    print('\n', round(time.time() - start_time, 2), 'sec')
+    print('\n', 'Elapsed time:', round(time.time() - start_time, 2), 'sec')
