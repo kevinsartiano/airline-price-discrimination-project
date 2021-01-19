@@ -1,6 +1,7 @@
 """Scraper Class."""
 import browser_cookie3
 import pickle
+import platform
 import time
 import webbrowser
 from selenium import webdriver
@@ -13,7 +14,8 @@ from selenium.common.exceptions import InvalidCookieDomainException
 from itineraries import ITINERARIES
 
 
-BROWSER_DRIVER = {'Chrome': 'driver/chromedriver'}
+BROWSER_DRIVER = {'Linux': {'Chrome': 'driver/chromedriver'},
+                  'Windows': {'Chrome': 'driver\chromedriver.exe'}}
 
 CARRIERS = {'Alitalia': 'https://www.alitalia.com/it_it/homepage.html',
             'Lufthansa': 'https://www.lufthansa.com/it/it/homepage',
@@ -27,12 +29,13 @@ class Scraper:
         """Init."""
         if carrier not in CARRIERS.keys():
             raise Exception(f'Allowed carriers are {CARRIERS.keys()}')
-        if browser not in BROWSER_DRIVER.keys():
-            raise Exception(f'Allowed carriers are {CARRIERS.keys()}')
+        if browser not in BROWSER_DRIVER[platform.system()].keys():
+            raise Exception(f'Allowed browsers are {BROWSER_DRIVER[platform.system()].keys()}')
         self.carrier = carrier
         self.browser = browser
         self.itinerary = itinerary
         self.search_result = {'outbound': None, 'inbound': None}
+        self.os = platform.system()
         self.driver = None
         self.driver_options = None
         self._load_configuration()
@@ -40,7 +43,7 @@ class Scraper:
     def _load_configuration(self):
         """Load required configuration."""
         self._load_driver_options()
-        self.driver = webdriver.Chrome(executable_path=BROWSER_DRIVER[self.browser],
+        self.driver = webdriver.Chrome(executable_path=BROWSER_DRIVER[self.os][self.browser],
                                        options=self.driver_options)
         # self.driver.implicitly_wait(10)
         self._load_cookies()
