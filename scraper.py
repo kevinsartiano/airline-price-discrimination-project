@@ -12,9 +12,9 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.remote.webelement import WebElement
-from selenium.common.exceptions import InvalidCookieDomainException
+from selenium.common.exceptions import InvalidCookieDomainException, NoSuchElementException
 
-from itineraries import ITINERARIES_ALITALIA, ITINERARIES_LUFTHANSA
+from itineraries import ITINERARIES_ALITALIA, ITINERARIES_LUFTHANSA, ITINERARIES_RYANAIR
 
 BROWSER_DRIVER = {'Linux': {'Chrome': 'driver/chromedriver'},
                   'Windows': {'Chrome': 'driver\\chromedriver.exe'}}
@@ -62,18 +62,20 @@ class Scraper:
     def _load_cookies(self):
         """Load cookies from previous sessions."""
         try:
-            cookies = pickle.load(open("cookies_jar/cookies.pkl", "rb"))
+            cookies = pickle.load(open(f"cookies_jar/{self.carrier.lower()}_cookies.pkl", "rb"))
             for cookie in cookies:
                 try:
                     self.driver.add_cookie(cookie)
                 except InvalidCookieDomainException:
                     continue
         except FileNotFoundError:
-            print('Cookie jar is empty.')
+            print(f'{self.carrier.capitalize()} cookie file is missing.')
+        finally:
+            pass
 
     def save_cookies(self):
         """Save cookies for future sessions."""
-        pickle.dump(self.driver.get_cookies(), open("cookies_jar/cookies.pkl", "wb"))
+        pickle.dump(self.driver.get_cookies(), open(f"cookies_jar/{self.carrier.lower()}_cookies.pkl", "wb"))
 
     def scrape(self):
         """Start scraping."""
@@ -165,7 +167,13 @@ class Scraper:
 
     def get_lufthansa_availability(self):
         """Get Lufthansa availability."""
+        self.driver.delete_cookie('ak_bmsc')
         self.driver.find_element_by_id('cm-acceptAll').click()
+        time.sleep(2)
+        try:
+            self.driver.find_element_by_xpath('//button[@aria-label="Chiudi "]').click()
+        except NoSuchElementException:
+            pass
         # Input origin airport #
         origin_selector = self.driver.find_element_by_name('flightQuery.flightSegments[0].originCode')
         origin_selector.click()
@@ -179,13 +187,13 @@ class Scraper:
         time.sleep(2)
         # Input departure date #
         self.driver.find_element_by_name('flightQuery.flightSegments[0].travelDatetime').click()
-        italian_weekday, day, month, year = self.format_date(self.itinerary['departure_date'])
+        italian_weekday, day, month, year = self.format_lufthansa_date(self.itinerary['departure_date'])
         self.scroll_to_month(month)
         departure_date = self.driver.find_element_by_css_selector(
             f'[aria-label="Choose {italian_weekday}, {day} {month} {year} as your check-in date. It\'s available."]')
         departure_date.click()
         # Input return date #
-        italian_weekday, day, month, year = self.format_date(self.itinerary['return_date'])
+        italian_weekday, day, month, year = self.format_lufthansa_date(self.itinerary['return_date'])
         self.scroll_to_month(month)
         return_date = self.driver.find_element_by_css_selector(
             f'[aria-label="Choose {italian_weekday}, {day} {month} {year} as your check-out date. It\'s available."]')
@@ -194,8 +202,6 @@ class Scraper:
         self.driver.find_element_by_css_selector('[class="icon icon-right lh lh-arrow-expand"]').click()
         self.driver.find_element_by_css_selector('[class="icon lh lh-plus"]').click()
         self.driver.find_element_by_xpath('//span[text()="Avanti"]').click()
-        # Remove bot detection cookie #
-        self.driver.delete_cookie('ak_bmsc')
         # Submit search #
         self.driver.find_element_by_xpath('//span[text()="Ricerca voli"]').click()
         time.sleep(5)
@@ -239,7 +245,7 @@ class Scraper:
         self.driver.find_element_by_xpath('//span[text()="Avanti"]').click()
 
     @staticmethod
-    def format_date(date: str):
+    def format_lufthansa_date(date: str):
         """Format weekday and date for Lufthansa date picker."""
         date_list = date.split('/')
         day = int(date_list[0])
@@ -266,6 +272,70 @@ class Scraper:
     def scrape_ryanair(self):
         """Scrape Ryanair."""
         self.driver.get(CARRIERS[self.carrier])
+        self.get_ryanair_availability()
+        self.get_ryanair_price()
+        self.save_cookies()
+
+    def get_ryanair_availability(self):
+        """Get Ryanair availability."""
+        self.driver.find_element_by_css_selector('[class="cookie-popup-with-overlay__button"]').click()
+        # Input origin airport #
+        origin_selector = self.driver.find_element_by_id('input-button__departure')
+        origin_selector.click()
+        origin_selector.clear()
+        origin_selector.send_keys(self.itinerary['origin'])
+        self.driver.find_element_by_css_selector(f'[data-id=\"{self.itinerary["origin"]}\"]').click()
+        time.sleep(2)
+        # Input destination airport #
+        destination_selector = self.driver.find_element_by_id('input-button__destination')
+        destination_selector.send_keys(self.itinerary['destination'])
+        self.driver.find_element_by_css_selector(f'[data-id=\"{self.itinerary["destination"]}\"]').click()
+        time.sleep(2)
+        # Select departure date #
+        day, month, year = self.format_ryanair_date(self.itinerary['departure_date'])
+        self.driver.find_element_by_xpath(f'//div[contains(text(),"{ITALIAN_MONTH[int(month)][:3]}\")]').click()
+        self.driver.find_element_by_css_selector(f'[data-id="{year}-{month}-{day}"]').click()
+        # Select return date #
+        day, month, year = self.format_ryanair_date(self.itinerary['return_date'])
+        # self.driver.find_element_by_xpath(f'//div[contains(text(),"{ITALIAN_MONTH[int(month)][:3]}\")]').click()
+        self.driver.find_element_by_css_selector(f'[data-id="{year}-{month}-{day}"]').click()
+        time.sleep(2)
+        # Select passengers #
+        self.driver.find_element_by_xpath('//ry-counter[@data-ref="passengers-picker__adults"]/'
+                                          'div/div[@data-ref="counter.counter__increment"]').click()
+        time.sleep(2)
+        # Submit search #
+        self.driver.find_element_by_xpath('//*[text()=" Cerca "]').click()
+        time.sleep(5)
+
+    @staticmethod
+    def format_ryanair_date(date: str):
+        """Format weekday and date for Ryanair date picker."""
+        date_list = date.split('/')
+        day = date_list[0]
+        month = date_list[1]
+        year = date_list[2]
+        return day, month, year
+
+    def get_ryanair_price(self):
+        """Get Ryanair price."""
+        # Select departure flight #
+        self.driver.find_element_by_xpath(f'//*[text()=" {self.itinerary["departure_time"]} "]').click()
+        time.sleep(2)
+        fare_box = self.driver.find_element_by_css_selector('[data-e2e="fare-card--plus"]')
+        fare_box_text = fare_box.text.split("\n")
+        self.itinerary.update({'departure_price': f'{fare_box_text[-4]}.{fare_box_text[-2]}'})
+        fare_box.click()
+        time.sleep(2)
+        # Select return flight #
+        self.driver.find_element_by_xpath(f'//*[text()=" {self.itinerary["return_time"]} "]').click()
+        time.sleep(2)
+        fare_box = self.driver.find_element_by_css_selector('[data-e2e="fare-card--plus"]')
+        fare_box_text = fare_box.text.split("\n")
+        self.itinerary.update({'return_price': f'{fare_box_text[-4]}.{fare_box_text[-2]}'})
+        fare_box.click()
+        time.sleep(2)
+        pass
 
     def wait_for_element(self, by: By, expected_condition: EC, locator: str) -> WebElement:
         """Wait for element before fetch."""
@@ -278,6 +348,9 @@ if __name__ == '__main__':
     alitalia_scraper.scrape()
     lufthansa_scraper = Scraper(carrier='Lufthansa', browser='Chrome', itinerary=ITINERARIES_LUFTHANSA[0])
     lufthansa_scraper.scrape()
+    ryanair_scraper = Scraper(carrier='Ryanair', browser='Chrome', itinerary=ITINERARIES_RYANAIR[0])
+    ryanair_scraper.scrape()
     print(alitalia_scraper.itinerary)
     print(lufthansa_scraper.itinerary)
+    print(ryanair_scraper.itinerary)
     print('\n', 'Elapsed time:', round(time.time() - start_time, 2), 'sec')
