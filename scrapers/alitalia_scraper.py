@@ -5,13 +5,14 @@ import browser_cookie3
 from time import sleep
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
-from scrapers.scraper import Scraper, CARRIERS
+from scrapers.scraper import Scraper
 
 
 class AlitaliaScraper(Scraper):
     """Alitalia Scraper Class."""
 
     carrier = 'Alitalia'
+    carrier_url = 'https://www.alitalia.com/it_it/homepage.html'
 
     def get_availability(self):
         """Get availability."""
@@ -42,7 +43,7 @@ class AlitaliaScraper(Scraper):
 
     def get_ak_bmsc_valid_value(self) -> str:
         """Get valid value for ak_bmsc cookie."""
-        webbrowser.open_new_tab(CARRIERS[self.carrier])
+        webbrowser.open_new_tab(self.carrier_url)
         cookie_jar = browser_cookie3.chrome()
         # FIXME
         # os.system("pkill chrome")
@@ -53,7 +54,7 @@ class AlitaliaScraper(Scraper):
                     ak_bmsc_new_value = cookie.value
         if ak_bmsc_new_value:
             return ak_bmsc_new_value.replace('+', ' ')
-        return None
+        return ''
 
     def get_price(self):
         """Get price for selected flight."""

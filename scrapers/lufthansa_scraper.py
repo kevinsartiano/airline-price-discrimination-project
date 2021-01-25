@@ -11,6 +11,7 @@ class LufthansaScraper(Scraper):
     """Lufthansa Scraper Class."""
 
     carrier = 'Lufthansa'
+    carrier_url = 'https://www.lufthansa.com/it/it/homepage'
 
     def get_availability(self):
         """Get Lufthansa availability."""

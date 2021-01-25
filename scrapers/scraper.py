@@ -1,4 +1,4 @@
-"""Scraper."""
+"""Abstract Scraper."""
 
 import pickle
 import platform
@@ -13,10 +13,6 @@ from selenium.common.exceptions import InvalidCookieDomainException
 BROWSER_DRIVER = {'Linux': {'Chrome': 'driver/chromedriver'},
                   'Windows': {'Chrome': 'driver\\chromedriver.exe'}}
 
-CARRIERS = {'Alitalia': 'https://www.alitalia.com/it_it/homepage.html',
-            'Lufthansa': 'https://www.lufthansa.com/it/it/homepage',
-            'Ryanair': 'https://www.ryanair.com/it/it'}
-
 ITALIAN_WEEKDAY = {0: 'lunedì', 1: 'martedì', 2: 'mecoledì', 3: 'giovedì', 4: 'venerdì', 5: 'sabato', 6: 'domenica'}
 
 ITALIAN_MONTH = {1: 'gennaio', 2: 'febbraio', 3: 'marzo', 4: 'aprile', 5: 'maggio', 6: 'giugno',
@@ -24,19 +20,20 @@ ITALIAN_MONTH = {1: 'gennaio', 2: 'febbraio', 3: 'marzo', 4: 'aprile', 5: 'maggi
 
 
 class Scraper(ABC):
-    """Scraper class."""
+    """Abstract scraper class."""
 
-    carrier = None
+    carrier: str = NotImplemented
+    carrier_url: str = NotImplemented
 
-    def __init__(self, browser: str, itinerary: dict) -> None:
+    def __init__(self, browser: str, itinerary: dict):
         """Init."""
         if browser not in BROWSER_DRIVER[platform.system()].keys():
             raise Exception(f'Allowed browsers are {BROWSER_DRIVER[platform.system()].keys()}')
         self.browser = browser
         self.itinerary = itinerary
         self.os = platform.system()
-        self.driver = None
-        self.driver_options = None
+        self.driver: webdriver
+        self.driver_options: webdriver
         self._load_configuration()
 
     def _load_configuration(self):
@@ -73,7 +70,7 @@ class Scraper(ABC):
 
     def scrape(self):
         """Start scraping."""
-        self.driver.get(CARRIERS[self.carrier])
+        self.driver.get(self.carrier_url)
         self.get_availability()
         self.get_price()
         self.save_cookies()
@@ -88,4 +85,4 @@ class Scraper(ABC):
 
     def wait_for_element(self, by: By, expected_condition: expected_conditions, locator: str) -> WebElement:
         """Wait for element before fetch."""
-        return WebDriverWait(self.driver, 15).until(expected_condition((by, locator)))
+        return WebDriverWait(self.driver, 60).until(expected_condition((by, locator)))

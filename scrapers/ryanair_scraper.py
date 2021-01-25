@@ -8,6 +8,7 @@ class RyanairScraper(Scraper):
     """Ryanair Scraper Class."""
 
     carrier = 'Ryanair'
+    carrier_url = 'https://www.ryanair.com/it/it'
 
     def get_availability(self):
         """Get Ryanair availability."""

@@ -4,8 +4,7 @@ import json
 import os
 import time
 from amadeus import Client, ResponseError
-from openpyxl import Workbook
-from openpyxl.styles import Alignment
+from tools.spreadsheet_tool import export_to_csv
 
 from airline_codes import AIRLINE_TABLE
 
@@ -21,11 +20,12 @@ def basic_search_flight(origin: str, destination: str, departure_date: str, retu
             adults=1,
             # includedAirlineCodes='LH'
         )
-        path = os.path.join('output', 'simple_search_flight', f'{origin}-{destination}_{departure_date}_{return_date}')
-        if not os.path.exists(os.path.dirname(path)):
-            os.makedirs(os.path.dirname(path))
-        export_to_json(path=path, data=response.data)
-        export_to_csv(path=path, data=parse_data(response.data))
+        dirname = os.path.join('output', 'amadeus_search_result')
+        basename = f'{origin}-{destination}_{departure_date}_{return_date}'
+        if not os.path.exists(dirname):
+            os.makedirs(dirname)
+        export_to_json(data=response.data, basename=basename, dirname=dirname)
+        export_to_csv(data=parse_data(response.data), basename=basename, dirname=dirname)
     except ResponseError as error:
         print(error)
 
@@ -60,36 +60,11 @@ def get_itinerary(way):
     return itinerary
 
 
-def export_to_json(path, data):
+def export_to_json(data, basename: str, dirname: str = 'output'):
     """Export to JSON file."""
-    with open(f'{path}.json', 'w') as j:
+    path = os.path.join(dirname, basename + '.json')
+    with open(path, 'w') as j:
         json.dump(data, j, indent=4)
-
-
-def export_to_csv(path, data):
-    """Export to CSV file."""
-    book = Workbook()
-    sheet = book.active
-    sheet.append([header for header in data[0].keys()])
-    for row in data:
-        sheet.append(list(row.values()))
-    adjust_column_width(sheet)
-    sheet.freeze_panes = sheet['A2']
-    sheet.auto_filter.ref = sheet.dimensions
-    book.save(f'{path}.xlsx')
-
-
-def adjust_column_width(sheet):
-    """Adjust column width."""
-    for i, column_cells in enumerate(sheet.columns, 1):
-        if i <= 3:
-            sheet.column_dimensions[column_cells[0].column_letter].width = 25
-            continue
-        length = max(len(str(cell.value)) for cell in column_cells)
-        sheet.column_dimensions[column_cells[0].column_letter].width = length + 3
-    for row in sheet.iter_rows(max_col=2):
-        for cell in row:
-            cell.alignment = Alignment(wrapText=True)
 
 
 def parse_args():
