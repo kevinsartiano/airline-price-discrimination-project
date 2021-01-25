@@ -13,7 +13,7 @@ pip install requirements.txt
 You can run the script as follows:
 
 ```
-python scraper.py
+python run_scrapers.py
 ```
 
 It currently supports Chrome for Linux and Windows

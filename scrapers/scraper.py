@@ -41,8 +41,6 @@ class Scraper(ABC):
         self._load_driver_options()
         self.driver = webdriver.Chrome(executable_path=BROWSER_DRIVER[self.os][self.browser],
                                        options=self.driver_options)
-        # FIXME
-        # self.driver.implicitly_wait(10)
         self._load_cookies()
 
     def _load_driver_options(self):
@@ -74,6 +72,7 @@ class Scraper(ABC):
         self.get_availability()
         self.get_price()
         self.save_cookies()
+        self.driver.quit()
 
     @abstractmethod
     def get_availability(self):

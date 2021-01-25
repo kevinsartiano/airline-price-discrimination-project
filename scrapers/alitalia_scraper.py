@@ -1,5 +1,5 @@
 """Alitalia Scraper."""
-
+import os
 import webbrowser
 import browser_cookie3
 from time import sleep
@@ -16,6 +16,12 @@ class AlitaliaScraper(Scraper):
 
     def get_availability(self):
         """Get availability."""
+        # Replace bot detection cookie with valid one to continue #
+        ak_bmsc_cookie = self.driver.get_cookie('ak_bmsc')
+        ak_bmsc_cookie['value'] = self.get_ak_bmsc_valid_value()
+        sleep(5)
+        self.driver.delete_cookie('ak_bmsc')
+        self.driver.add_cookie(ak_bmsc_cookie)
         # Get search parameters handlers #
         origin_selector = self.driver.find_element_by_id('luogo-partenza--prenota-desk')
         destination_selector = self.driver.find_element_by_id('luogo-arrivo--prenota-desk')
@@ -31,12 +37,6 @@ class AlitaliaScraper(Scraper):
         validate_date_button.click()
         add_passenger_button = self.driver.find_element_by_id('addAdults')
         add_passenger_button.click()
-        # Replace bot detection cookie with valid one to continue #
-        ak_bmsc_cookie = self.driver.get_cookie('ak_bmsc')
-        ak_bmsc_cookie['value'] = self.get_ak_bmsc_valid_value()
-        sleep(5)
-        self.driver.delete_cookie('ak_bmsc')
-        self.driver.add_cookie(ak_bmsc_cookie)
         # Submit search #
         submit_button = self.driver.find_element_by_id('submitHidden--prenota')
         submit_button.click()
@@ -45,8 +45,7 @@ class AlitaliaScraper(Scraper):
         """Get valid value for ak_bmsc cookie."""
         webbrowser.open_new_tab(self.carrier_url)
         cookie_jar = browser_cookie3.chrome()
-        # FIXME
-        # os.system("pkill chrome")
+        os.system("wmctrl -c :ACTIVE:")  # close chrome window used to get valid cookie
         ak_bmsc_new_value = None
         for cookie in cookie_jar:
             if self.carrier.lower() in cookie.domain:
@@ -69,7 +68,7 @@ class AlitaliaScraper(Scraper):
         select_button = self.wait_for_element(By.CSS_SELECTOR, ec.element_to_be_clickable,
                                               '[class="firstButton j-goToReturn"]')
         select_button.click()
-        sleep(10)
+        sleep(5)
         # Get return price #
         return_node = self.wait_for_element(By.CSS_SELECTOR, ec.presence_of_element_located,
                                             f'[data-flight-time=\"{self.itinerary["return_time"]}\"]'
