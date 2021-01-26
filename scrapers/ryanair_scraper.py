@@ -19,12 +19,12 @@ class RyanairScraper(Scraper):
         origin_selector.clear()
         origin_selector.send_keys(self.itinerary['origin'])
         self.driver.find_element_by_css_selector(f'[data-id=\"{self.itinerary["origin"]}\"]').click()
-        sleep(2)
+        sleep(3)
         # Input destination airport #
         destination_selector = self.driver.find_element_by_id('input-button__destination')
         destination_selector.send_keys(self.itinerary['destination'])
         self.driver.find_element_by_css_selector(f'[data-id=\"{self.itinerary["destination"]}\"]').click()
-        sleep(2)
+        sleep(3)
         # Select departure date #
         day, month, year = self.format_date(self.itinerary['departure_date'])
         self.driver.find_element_by_xpath(f'//div[contains(text(),"{ITALIAN_MONTH[int(month)][:3]}\")]').click()
@@ -34,11 +34,11 @@ class RyanairScraper(Scraper):
         # FIXME
         # self.driver.find_element_by_xpath(f'//div[contains(text(),"{ITALIAN_MONTH[int(month)][:3]}\")]').click()
         self.driver.find_element_by_css_selector(f'[data-id="{year}-{month}-{day}"]').click()
-        sleep(2)
+        sleep(3)
         # Select passengers #
         self.driver.find_element_by_xpath('//ry-counter[@data-ref="passengers-picker__adults"]/'
                                           'div/div[@data-ref="counter.counter__increment"]').click()
-        sleep(2)
+        sleep(3)
         # Submit search #
         self.driver.find_element_by_xpath('//*[text()=" Cerca "]').click()
         sleep(5)
@@ -55,18 +55,40 @@ class RyanairScraper(Scraper):
     def get_price(self):
         """Get Ryanair price."""
         # Select departure flight #
-        self.driver.find_element_by_xpath(f'//*[text()=" {self.itinerary["departure_time"]} "]').click()
-        sleep(2)
+        flight_row = self.driver.find_element_by_xpath(
+            f'//*[text()=" {self.itinerary["departure_time"]} "]/ancestor::flight-card')
+        base_price = float(flight_row.text.split('\n')[-1][:-2].replace(',', '.'))
+        departure_flight_number = flight_row.find_element_by_css_selector('[class="card-flight-num__content"]').text
+        self.itinerary.update({'departure_flight': departure_flight_number})
+        flight_row.click()
+        sleep(3)
         fare_box = self.driver.find_element_by_css_selector('[data-e2e="fare-card--plus"]')
         fare_box_text = fare_box.text.split("\n")
-        self.itinerary.update({'departure_price': f'{fare_box_text[-4]}.{fare_box_text[-2]}'})
+        add_on_price = float(f'{fare_box_text[-5]}.{fare_box_text[-3]}')
+        departure_price = str(round(base_price + add_on_price, 2))
+        self.itinerary.update({'departure_price': departure_price})
         fare_box.click()
-        sleep(2)
+        sleep(3)
         # Select return flight #
-        self.driver.find_element_by_xpath(f'//*[text()=" {self.itinerary["return_time"]} "]').click()
-        sleep(2)
+        flight_row = self.driver.find_element_by_xpath(
+            f'//*[text()=" {self.itinerary["return_time"]} "]/ancestor::flight-card')
+        base_price = float(flight_row.text.split('\n')[-1][:-2].replace(',', '.'))
+        return_flight_number = flight_row.find_element_by_css_selector('[class="card-flight-num__content"]').text
+        self.itinerary.update({'return_flight': return_flight_number})
+        flight_row.click()
+        sleep(3)
         fare_box = self.driver.find_element_by_css_selector('[data-e2e="fare-card--plus"]')
         fare_box_text = fare_box.text.split("\n")
-        self.itinerary.update({'return_price': f'{fare_box_text[-4]}.{fare_box_text[-2]}'})
+        add_on_price = float(f'{fare_box_text[-5]}.{fare_box_text[-3]}')
+        return_price = str(round(base_price + add_on_price, 2))
+        self.itinerary.update({'return_price': return_price})
         fare_box.click()
-        sleep(2)
+        sleep(3)
+        total_price_box = self.driver.find_element_by_css_selector('[class="ng-tns-c17-1 price ng-star-inserted"]')
+        total_price_text = total_price_box.text.split('\n')
+        total_price = f'{total_price_text[1]}.{total_price_text[3]}'
+        self.itinerary.update({'total_price': total_price})
+
+    def get_control_price(self):
+        """Unable to use Amadeus API for Ryanair's control price."""
+        self.itinerary.update({'control_price': 'None'})

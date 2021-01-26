@@ -40,6 +40,7 @@ class AlitaliaScraper(Scraper):
         # Submit search #
         submit_button = self.driver.find_element_by_id('submitHidden--prenota')
         submit_button.click()
+        sleep(5)
 
     def get_ak_bmsc_valid_value(self) -> str:
         """Get valid value for ak_bmsc cookie."""
@@ -62,7 +63,7 @@ class AlitaliaScraper(Scraper):
                                                f'[data-flight-time=\"{self.itinerary["departure_time"]}\"]'
                                                f'[data-flight-brandname=\"{self.itinerary["fare_brand"]}\"]')
         self.itinerary.update({'departure_price': departure_node.get_attribute('data-flight-price'),
-                               'departure_flight_number': departure_node.get_attribute('data-flight-number')})
+                               'departure_flight': departure_node.get_attribute('data-flight-number')})
         departure_node.find_element_by_class_name('fakeRadio').click()
         sleep(5)
         select_button = self.wait_for_element(By.CSS_SELECTOR, ec.element_to_be_clickable,
@@ -73,10 +74,16 @@ class AlitaliaScraper(Scraper):
         return_node = self.wait_for_element(By.CSS_SELECTOR, ec.presence_of_element_located,
                                             f'[data-flight-time=\"{self.itinerary["return_time"]}\"]'
                                             f'[data-flight-brandname=\"{self.itinerary["fare_brand"]}\"]')
-        self.itinerary.update({'inbound_price': return_node.get_attribute('data-flight-price'),
-                               'inbound_flight_number': return_node.get_attribute('data-flight-number')})
+        self.itinerary.update({'return_price': return_node.get_attribute('data-flight-price'),
+                               'return_flight': return_node.get_attribute('data-flight-number')})
         return_node.find_element_by_class_name('fakeRadio').click()
         sleep(5)
         select_button = self.wait_for_element(By.CSS_SELECTOR, ec.element_to_be_clickable,
                                               '[class="firstButton j-selectReturn"]')
         select_button.click()
+        sleep(5)
+        # Get total price
+        # total_price = self.driver.find_element_by_id('basketPrice-text')
+        total_price_box = self.wait_for_element(By.ID, ec.presence_of_element_located, 'basketPrice-text')
+        total_price = total_price_box.text[2:].replace(',', '.')
+        self.itinerary.update({'total_price': total_price})

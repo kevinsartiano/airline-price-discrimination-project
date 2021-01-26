@@ -1,8 +1,10 @@
 """Abstract Scraper."""
-
+import json
+import os
 import pickle
 import platform
 from abc import ABC, abstractmethod
+from amadeus import Client, ResponseError
 from selenium import webdriver
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.common.by import By
@@ -17,6 +19,9 @@ ITALIAN_WEEKDAY = {0: 'lunedì', 1: 'martedì', 2: 'mecoledì', 3: 'giovedì', 4
 
 ITALIAN_MONTH = {1: 'gennaio', 2: 'febbraio', 3: 'marzo', 4: 'aprile', 5: 'maggio', 6: 'giugno',
                  7: 'luglio', 8: 'agosto', 9: 'settembre', 10: 'ottobre', 11: 'novembre', 12: 'dicembre'}
+
+RED_TEXT = '\033[91m'
+END_COLOR = '\033[0m'
 
 
 class Scraper(ABC):
@@ -73,6 +78,7 @@ class Scraper(ABC):
         self.get_price()
         self.save_cookies()
         self.driver.quit()
+        self.get_control_price()
 
     @abstractmethod
     def get_availability(self):
@@ -81,6 +87,79 @@ class Scraper(ABC):
     @abstractmethod
     def get_price(self):
         """Get price."""
+
+    def get_control_price(self):
+        """Get control price."""
+        try:
+            amadeus = Client(client_id=os.environ['AMADEUS_API_KEY'], client_secret=os.environ['AMADEUS_API_SECRET'])
+            body = self.populate_amadeus_request_body()
+            response = amadeus.shopping.flight_offers_search.post(body)
+            flight = None
+            for flight_element in response.data:
+                if self.itinerary['departure_time'] in json.dumps(flight_element):
+                    if self.itinerary['return_time'] in json.dumps(flight_element):
+                        flight = flight_element
+                        break
+            self.itinerary.update({'control_price': flight['price']['total']})
+        except (ResponseError, KeyError) as error:
+            print(RED_TEXT, f'Amadeus API Error while scraping {self.carrier}: {error}', END_COLOR)
+            self.itinerary.update({'control_price': 'Error with Amadeus API'})
+
+    def populate_amadeus_request_body(self) -> dict:
+        """Populate the body for the Amadeus request."""
+        day, month, year = self.itinerary['departure_date'].split('/')
+        departure_date = f'{year}-{month}-{day}'
+        day, month, year = self.itinerary['return_date'].split('/')
+        return_date = f'{year}-{month}-{day}'
+        body = {
+            "currencyCode": "EUR",
+            "originDestinations": [
+                {
+                    "id": "1",
+                    "originLocationCode": self.itinerary['origin'],
+                    "destinationLocationCode": self.itinerary['destination'],
+                    "departureDateTimeRange": {
+                        "date": departure_date,
+                        "time": self.itinerary['departure_time'] + ':00',
+                        "timeWindow": "1H"
+                    }
+                },
+                {
+                    "id": "2",
+                    "originLocationCode": self.itinerary['destination'],
+                    "destinationLocationCode": self.itinerary['origin'],
+                    "departureDateTimeRange": {
+                        "date": return_date,
+                        "time": self.itinerary['return_time'] + ':00',
+                        "timeWindow": "1H"
+                    }
+                }
+            ],
+            "travelers": [
+                {
+                    "id": "2",
+                    "travelerType": "ADULT"
+                }
+            ],
+            "sources": ["GDS"],
+            "searchCriteria": {
+                "flightFilters": {
+                    "cabinRestrictions": [
+                        {
+                            "cabin": "ECONOMY",
+                            "originDestinationIds": ["1", "2"]
+                        }
+                    ],
+                    "carrierRestrictions": {
+                        "includedCarrierCodes": ["AZ", "LH"]
+                    }
+                },
+                "pricingOptions": {
+                    "includedCheckedBagsOnly": True
+                }
+            }
+        }
+        return body
 
     def wait_for_element(self, by: By, expected_condition: expected_conditions, locator: str) -> WebElement:
         """Wait for element before fetch."""

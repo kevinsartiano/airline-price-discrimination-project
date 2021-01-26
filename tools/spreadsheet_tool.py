@@ -17,9 +17,15 @@ def export_to_csv(data: list, basename: str, dirname: str = 'output'):
     """
     book = Workbook()
     sheet = book.active
-    sheet.append([header for header in data[0].keys()])
+    headers = ['carrier', 'origin', 'destination', 'fare_brand',
+               'departure_date', 'departure_time', 'return_date', 'return_time',
+               'departure_flight', 'departure_price', 'return_flight', 'return_price', 'total_price', 'control_price']
+    sheet.append(headers)
     for row in data:
-        sheet.append(list(row.values()))
+        sheet.append([row['carrier'], row['origin'], row['destination'], row['fare_brand'],
+                     row['departure_date'], row['departure_time'], row['return_date'], row['return_time'],
+                     row['departure_flight'], row['departure_price'], row['return_flight'], row['return_price'],
+                     row['total_price'], row['control_price']])
     adjust_column_width(sheet)
     sheet.freeze_panes = sheet['A2']
     sheet.auto_filter.ref = sheet.dimensions
@@ -30,9 +36,9 @@ def export_to_csv(data: list, basename: str, dirname: str = 'output'):
 def adjust_column_width(sheet: Worksheet):
     """Adjust the columns' width."""
     for i, column_cells in enumerate(sheet.columns, 1):
-        if i <= 3:
-            sheet.column_dimensions[column_cells[0].column_letter].width = 25
-            continue
+        # if i <= 3:
+        #     sheet.column_dimensions[column_cells[0].column_letter].width = 25
+        #     continue
         length = max(len(str(cell.value)) for cell in column_cells)
         sheet.column_dimensions[column_cells[0].column_letter].width = length + 3
     for row in sheet.iter_rows(max_col=2):

@@ -17,7 +17,7 @@ class LufthansaScraper(Scraper):
         """Get Lufthansa availability."""
         self.driver.delete_cookie('ak_bmsc')
         self.driver.find_element_by_id('cm-acceptAll').click()
-        sleep(2)
+        sleep(3)
         try:
             self.driver.find_element_by_xpath('//button[@aria-label="Chiudi "]').click()
         except NoSuchElementException:
@@ -27,12 +27,12 @@ class LufthansaScraper(Scraper):
         origin_selector.click()
         origin_selector.send_keys(Keys.CONTROL + "a" + Keys.DELETE)
         origin_selector.send_keys(self.itinerary['origin'])
-        sleep(2)
+        sleep(3)
         # Input destination airport #
         destination_selector = self.driver.find_element_by_name('flightQuery.flightSegments[0].destinationCode')
         destination_selector.click()
         destination_selector.send_keys(self.itinerary['destination'])
-        sleep(2)
+        sleep(3)
         # Input departure date #
         self.driver.find_element_by_name('flightQuery.flightSegments[0].travelDatetime').click()
         italian_weekday, day, month, year = self.format_lufthansa_date(self.itinerary['departure_date'])
@@ -60,7 +60,7 @@ class LufthansaScraper(Scraper):
         departure_row = self.driver.find_element_by_xpath(
             f'//*[contains(text(), "{self.itinerary["departure_time"]}")]/ancestor::pres-avail')
         departure_flight_number = departure_row.find_element_by_xpath('.//div[@class="flightNumber"]').text
-        self.itinerary.update({'departure_flight_number': departure_flight_number})
+        self.itinerary.update({'departure_flight': departure_flight_number})
         cabin_identifier = self.itinerary['fare_brand'][0]
         departure_row.find_element_by_xpath(
             f'.//div[@class="container cabin{cabin_identifier} ng-star-inserted"]/div/input').click()
@@ -68,7 +68,7 @@ class LufthansaScraper(Scraper):
         departure_price_container = departure_row.find_element_by_xpath(
             f'.//*[contains(text(),\"{self.itinerary["fare_brand"]}\")]/ancestor::cont-fare')
         departure_price_container.find_element_by_xpath('.//button').click()
-        departure_price = departure_price_container.text.split('\n')[-1].split(' ')[0]
+        departure_price = departure_price_container.text.split('\n')[-1].split(' ')[0].replace(',', '.')
         self.itinerary.update({'departure_price': departure_price})
         # Remove bot detection cookie #
         self.driver.delete_cookie('ak_bmsc')
@@ -78,7 +78,7 @@ class LufthansaScraper(Scraper):
         return_row = self.driver.find_element_by_xpath(
             f'//*[contains(text(), "{self.itinerary["return_time"]}")]/ancestor::pres-avail')
         return_flight_number = return_row.find_element_by_xpath('.//div[@class="flightNumber"]').text
-        self.itinerary.update({'return_flight_number': return_flight_number})
+        self.itinerary.update({'return_flight': return_flight_number})
         cabin_identifier = self.itinerary['fare_brand'][0]
         return_row.find_element_by_xpath(
             f'.//div[@class="container cabin{cabin_identifier} ng-star-inserted"]/div/input').click()
@@ -86,11 +86,16 @@ class LufthansaScraper(Scraper):
         return_price_container = return_row.find_element_by_xpath(
             f'.//*[contains(text(),\"{self.itinerary["fare_brand"]}\")]/ancestor::cont-fare')
         return_price_container.find_element_by_xpath('.//button').click()
-        return_price = return_price_container.text.split('\n')[-1].split(' ')[0]
+        return_price = return_price_container.text.split('\n')[-1].split(' ')[0].replace(',', '.')
         self.itinerary.update({'return_price': return_price})
         # Remove bot detection cookie #
         self.driver.delete_cookie('ak_bmsc')
         self.driver.find_element_by_xpath('//span[text()="Avanti"]').click()
+        sleep(3)
+        total_price_box = self.driver.find_element_by_css_selector(
+            '[class="shopping-cart-total-price__totalPrice ng-scope ng-isolate-scope"]')
+        total_price = total_price_box.text[:-4].replace(',', '.')
+        self.itinerary.update({'total_price': total_price})
 
     @staticmethod
     def format_lufthansa_date(date: str):
