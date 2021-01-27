@@ -3,6 +3,7 @@ import json
 import os
 import pickle
 import platform
+import time
 from abc import ABC, abstractmethod
 from amadeus import Client, ResponseError
 from selenium import webdriver
@@ -73,12 +74,14 @@ class Scraper(ABC):
 
     def scrape(self):
         """Start scraping."""
+        start_time = time.time()
         self.driver.get(self.carrier_url)
         self.get_availability()
         self.get_price()
         self.save_cookies()
         self.driver.quit()
         self.get_control_price()
+        print(f'{self.carrier}: {round(time.time() - start_time)} sec')
 
     @abstractmethod
     def get_availability(self):
@@ -91,7 +94,8 @@ class Scraper(ABC):
     def get_control_price(self):
         """Get control price."""
         try:
-            amadeus = Client(client_id=os.environ['AMADEUS_API_KEY'], client_secret=os.environ['AMADEUS_API_SECRET'])
+            amadeus = Client(client_id=os.environ['AMADEUS_API_KEY'], client_secret=os.environ['AMADEUS_API_SECRET'],
+                             hostname='production')
             body = self.populate_amadeus_request_body()
             response = amadeus.shopping.flight_offers_search.post(body)
             flight = None
@@ -100,9 +104,10 @@ class Scraper(ABC):
                     if self.itinerary['return_time'] in json.dumps(flight_element):
                         flight = flight_element
                         break
-            self.itinerary.update({'control_price': flight['price']['total']})
+            self.itinerary.update({'control_price': flight['price']['grandTotal'],
+                                   'seats_left': flight['numberOfBookableSeats']})
         except (ResponseError, KeyError) as error:
-            print(RED_TEXT, f'Amadeus API Error while scraping {self.carrier}: {error}', END_COLOR)
+            print(RED_TEXT, f'Amadeus API Error while scraping {self.carrier.capitalize()}: {error}', END_COLOR)
             self.itinerary.update({'control_price': 'Error with Amadeus API'})
 
     def populate_amadeus_request_body(self) -> dict:
@@ -137,9 +142,13 @@ class Scraper(ABC):
             ],
             "travelers": [
                 {
+                    "id": "1",
+                    "travelerType": "ADULT"
+                },
+                {
                     "id": "2",
                     "travelerType": "ADULT"
-                }
+                },
             ],
             "sources": ["GDS"],
             "searchCriteria": {

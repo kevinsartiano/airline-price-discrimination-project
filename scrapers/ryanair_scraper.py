@@ -31,8 +31,6 @@ class RyanairScraper(Scraper):
         self.driver.find_element_by_css_selector(f'[data-id="{year}-{month}-{day}"]').click()
         # Select return date #
         day, month, year = self.format_date(self.itinerary['return_date'])
-        # FIXME
-        # self.driver.find_element_by_xpath(f'//div[contains(text(),"{ITALIAN_MONTH[int(month)][:3]}\")]').click()
         self.driver.find_element_by_css_selector(f'[data-id="{year}-{month}-{day}"]').click()
         sleep(3)
         # Select passengers #
@@ -91,4 +89,4 @@ class RyanairScraper(Scraper):
 
     def get_control_price(self):
         """Unable to use Amadeus API for Ryanair's control price."""
-        self.itinerary.update({'control_price': 'None'})
+        self.itinerary.update({'control_price': 'Unknown', 'seats_left': 'Unknown'})

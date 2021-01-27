@@ -40,7 +40,7 @@ class AlitaliaScraper(Scraper):
         # Submit search #
         submit_button = self.driver.find_element_by_id('submitHidden--prenota')
         submit_button.click()
-        sleep(5)
+        sleep(10)
 
     def get_ak_bmsc_valid_value(self) -> str:
         """Get valid value for ak_bmsc cookie."""
@@ -81,7 +81,7 @@ class AlitaliaScraper(Scraper):
         select_button = self.wait_for_element(By.CSS_SELECTOR, ec.element_to_be_clickable,
                                               '[class="firstButton j-selectReturn"]')
         select_button.click()
-        sleep(5)
+        sleep(10)
         # Get total price
         # total_price = self.driver.find_element_by_id('basketPrice-text')
         total_price_box = self.wait_for_element(By.ID, ec.presence_of_element_located, 'basketPrice-text')

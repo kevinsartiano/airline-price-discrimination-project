@@ -20,9 +20,7 @@ if __name__ == '__main__':
     ryanair_scraper = RyanairScraper(browser='Chrome', itinerary=ITINERARIES_RYANAIR[0])
     ryanair_scraper.scrape()
 
-    print('Exporting to spreadsheet ...', end=' ')
     export_to_csv(data=[alitalia_scraper.itinerary, lufthansa_scraper.itinerary, ryanair_scraper.itinerary],
                   basename=str(datetime.now().strftime("%m-%d-%Y_%H:%M:%S")))
-    print('complete.')
 
-    print('\n', 'Elapsed time:', round(time.time() - start_time, 2), 'sec')
+    print('\n', 'Total time:', round(time.time() - start_time, 2), 'sec')
