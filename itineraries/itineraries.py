@@ -1,24 +1,24 @@
 """Itineraries."""
 
-""" Alitalia fare brands: Economy Light, Economy Classic, Economy Flex, Comfort Flex """
-ITINERARIES_ALITALIA = [{'carrier': 'Alitalia', 'fare_brand': 'Economy Classic',
+ALITALIA_ITINERARIES = [{'carrier': 'Alitalia', 'fare_brand': 'Economy Light',
                          'origin': 'FCO', 'destination': 'CTA',
-                         'departure_date': '01/06/2021', 'departure_time': '09:10',
-                         'return_date': '14/06/2021', 'return_time': '09:30'}]
+                         'departure_date': '16/07/2021', 'departure_time': '17:00',
+                         'return_date': '18/07/2021', 'return_time': '20:20'}]
 
-""" Lufthansa fare brands: Economy Light, Economy Classic, Economy Flex, Business Saver, Business Flex """
-ITINERARIES_LUFTHANSA = [{'carrier': 'Lufthansa', 'fare_brand': 'Economy Classic',
-                          'origin': 'FCO', 'destination': 'MUC',
-                          'departure_date': '01/06/2021', 'departure_time': '10:50',
-                          'return_date': '14/06/2021', 'return_time': '13:25'},
-                         {'carrier': 'Lufthansa', 'fare_brand': 'Economy Classic',
-                          'origin': 'FCO', 'destination': 'FRA',
-                          'departure_date': '02/11/2021', 'departure_time': '07:30',
-                          'return_date': '09/11/2021', 'return_time': '07:20'}]
-
-""" Ryanair fare brands: Value, Regular, Plus, Flexi PLus """
-ITINERARIES_RYANAIR = [{'carrier': 'Ryanair', 'fare_brand': 'Plus',
+RYANAIR_ITINERARIES = [{'carrier': 'Ryanair', 'fare_brand': 'Regular',
                         'origin': 'FCO', 'destination': 'CTA',
-                        'departure_date': '01/06/2021', 'departure_time': '10:20',
-                        'return_date': '14/06/2021', 'return_time': '11:15'}]
+                        'departure_date': '16/07/2021', 'departure_time': '17:00',
+                        'return_date': '18/07/2021', 'return_time': '20:10'}]
+
+LUFTHANSA_ITINERARIES = [{'carrier': 'Lufthansa', 'fare_brand': 'Economy Light',
+                          'origin': 'FCO', 'destination': 'MUC',
+                          'departure_date': '23/07/2021', 'departure_time': '19:15',
+                          'return_date': '23/07/2021', 'return_time': '16:55'}]
+
+AIRFRANCE_ITINERARIES = [{'carrier': 'Airfrance', 'fare_brand': 'Light',
+                          'origin': 'FCO', 'destination': 'CDG',
+                          'departure_date': '23/07/2021', 'departure_time': '18:25',
+                          'return_date': '23/07/2021', 'return_time': '16:55'}]
+
+
 

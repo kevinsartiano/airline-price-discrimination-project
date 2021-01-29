@@ -2,7 +2,7 @@
 import os
 import time
 from datetime import datetime
-from itineraries.itineraries import ITINERARIES_ALITALIA, ITINERARIES_LUFTHANSA, ITINERARIES_RYANAIR
+from itineraries.itineraries import ALITALIA_ITINERARIES, LUFTHANSA_ITINERARIES, RYANAIR_ITINERARIES
 from scrapers.alitalia_scraper import AlitaliaScraper
 from scrapers.lufthansa_scraper import LufthansaScraper
 from scrapers.ryanair_scraper import RyanairScraper
@@ -16,13 +16,13 @@ if __name__ == '__main__':
     logger.info('Scraping started')
     start_time = time.time()
 
-    alitalia_scraper = AlitaliaScraper(browser='Chrome', itinerary=ITINERARIES_ALITALIA[0])
+    alitalia_scraper = AlitaliaScraper(browser='Chrome', itinerary=ALITALIA_ITINERARIES[0])
     alitalia_scraper.scrape()
 
-    lufthansa_scraper = LufthansaScraper(browser='Chrome', itinerary=ITINERARIES_LUFTHANSA[0])
+    lufthansa_scraper = LufthansaScraper(browser='Chrome', itinerary=LUFTHANSA_ITINERARIES[0])
     lufthansa_scraper.scrape()
 
-    ryanair_scraper = RyanairScraper(browser='Chrome', itinerary=ITINERARIES_RYANAIR[0])
+    ryanair_scraper = RyanairScraper(browser='Chrome', itinerary=RYANAIR_ITINERARIES[0])
     ryanair_scraper.scrape()
 
     logger.info('Exporting data to spreadsheet')

@@ -22,9 +22,6 @@ ITALIAN_WEEKDAY = {0: 'lunedì', 1: 'martedì', 2: 'mecoledì', 3: 'giovedì', 4
 ITALIAN_MONTH = {1: 'gennaio', 2: 'febbraio', 3: 'marzo', 4: 'aprile', 5: 'maggio', 6: 'giugno',
                  7: 'luglio', 8: 'agosto', 9: 'settembre', 10: 'ottobre', 11: 'novembre', 12: 'dicembre'}
 
-RED_TEXT = '\033[91m'
-END_COLOR = '\033[0m'
-
 
 class Scraper(ABC):
     """Abstract scraper class."""
@@ -65,7 +62,7 @@ class Scraper(ABC):
                 except InvalidCookieDomainException:
                     continue
         except FileNotFoundError:
-            logging.warning(f'{self.carrier.capitalize()} cookie file is missing.')
+            logging.warning(f'{self.carrier} cookie file is missing.')
         finally:
             pass
 
@@ -76,18 +73,18 @@ class Scraper(ABC):
     def scrape(self):
         """Start scraping."""
         try:
-            logging.info(f'Scraping {self.carrier.capitalize()}')
+            logging.info(f'Scraping {self.carrier}')
             start_time = time.time()
             self.driver.get(self.carrier_url)
             self.get_availability()
             self.get_price()
             self.save_cookies()
             self.driver.quit()
-            logging.info(f'Getting {self.carrier.capitalize()} control price')
+            logging.info(f'Getting {self.carrier} control price')
             self.get_control_price()
-            logging.info(f'{self.carrier.capitalize()}: {round(time.time() - start_time)} sec')
+            logging.info(f'{self.carrier}: {round(time.time() - start_time)} sec')
         except (NoSuchElementException, TimeoutException):
-            logging.error(f'{RED_TEXT}{self.carrier.capitalize()} scraper crashed{END_COLOR}')
+            logging.error(f'{self.carrier} scraper crashed')
 
     @abstractmethod
     def get_availability(self):
@@ -113,7 +110,7 @@ class Scraper(ABC):
             self.itinerary.update({'control_price': flight['price']['grandTotal'],
                                    'seats_left': flight['numberOfBookableSeats']})
         except (ResponseError, KeyError) as error:
-            logging.error(f'{RED_TEXT}Amadeus API Error while scraping {self.carrier.capitalize()}: {error}{END_COLOR}')
+            logging.error(f'Amadeus API Error while scraping {self.carrier}: {error}')
             self.itinerary.update({'control_price': 'Error with Amadeus API'})
 
     def populate_amadeus_request_body(self) -> dict:
