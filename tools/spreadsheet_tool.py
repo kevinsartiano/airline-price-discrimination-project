@@ -28,8 +28,9 @@ def export_to_csv(data: list, basename: str, dirname: str = 'output'):
                           row['departure_date'], row['departure_time'], row['return_date'], row['return_time'],
                           row['departure_flight'], row['departure_price'], row['return_flight'], row['return_price'],
                           row['total_price'], row['control_price'], row['seats_left']])
-        except KeyError as e:
-            logging.warning(f'Missing {e} for {row["carrier"].capitalize()}')
+
+        except KeyError as error:
+            logging.warning(f'Missing {error} for {row["carrier"]}')
     adjust_column_width(sheet)
     sheet.freeze_panes = sheet['A2']
     sheet.auto_filter.ref = sheet.dimensions

@@ -63,8 +63,6 @@ class Scraper(ABC):
                     continue
         except FileNotFoundError:
             logging.warning(f'{self.carrier} cookie file is missing.')
-        finally:
-            pass
 
     def save_cookies(self):
         """Save cookies for future sessions."""
@@ -83,8 +81,9 @@ class Scraper(ABC):
             logging.info(f'Getting {self.carrier} control price')
             self.get_control_price()
             logging.info(f'{self.carrier}: {round(time.time() - start_time)} sec')
-        except (NoSuchElementException, TimeoutException):
-            logging.error(f'{self.carrier} scraper crashed')
+        except (NoSuchElementException, TimeoutException) as error:
+            logging.error(f'{self.carrier} scraper crashed: {error.__class__.__name__} > {error}')
+            self.driver.quit()
 
     @abstractmethod
     def get_availability(self):
@@ -110,7 +109,7 @@ class Scraper(ABC):
             self.itinerary.update({'control_price': flight['price']['grandTotal'],
                                    'seats_left': flight['numberOfBookableSeats']})
         except (ResponseError, KeyError) as error:
-            logging.error(f'Amadeus API Error while scraping {self.carrier}: {error}')
+            logging.error(f'Amadeus API Error while scraping {self.carrier}: {error.__class__.__name__} > {error}')
             self.itinerary.update({'control_price': 'Error with Amadeus API'})
 
     def populate_amadeus_request_body(self) -> dict:
@@ -175,4 +174,4 @@ class Scraper(ABC):
 
     def wait_for_element(self, by: By, expected_condition: expected_conditions, locator: str) -> WebElement:
         """Wait for element before fetch."""
-        return WebDriverWait(self.driver, 60).until(expected_condition((by, locator)))
+        return WebDriverWait(self.driver, 15).until(expected_condition((by, locator)))

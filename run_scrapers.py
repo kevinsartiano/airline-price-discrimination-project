@@ -10,9 +10,9 @@ from tools.logger_tool import get_logger
 from tools.spreadsheet_tool import export_to_csv
 
 if __name__ == '__main__':
-    logger = get_logger(filename=os.path.join('output', f'{str(datetime.now().strftime("%m-%d-%Y"))}.log'))
+    logger = get_logger(filename=os.path.join('output', 'logbook.log'))
 
-    logger.info('---------------------------------------------------------------')
+    logger.info('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
     logger.info('Scraping started')
     start_time = time.time()
 
@@ -27,7 +27,7 @@ if __name__ == '__main__':
 
     logger.info('Exporting data to spreadsheet')
     export_to_csv(data=[alitalia_scraper.itinerary, lufthansa_scraper.itinerary, ryanair_scraper.itinerary],
-                  basename=str(datetime.now().strftime("%m-%d-%Y_%H:%M:%S")))
+                  basename='raw_data')
 
     logger.info(f'Scraping completed in {round(time.time() - start_time, 2)} sec')
-    logger.info('---------------------------------------------------------------')
+    logger.info('<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<')

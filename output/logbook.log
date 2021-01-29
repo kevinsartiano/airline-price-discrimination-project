@@ -1,0 +1,14 @@
+2021-01-29 18:11:43,981 INFO: >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+2021-01-29 18:11:43,982 INFO: Scraping started
+2021-01-29 18:11:44,842 INFO: Scraping Alitalia
+2021-01-29 18:12:42,557 INFO: Getting Alitalia control price
+2021-01-29 18:12:45,674 INFO: Alitalia: 61 sec
+2021-01-29 18:12:47,338 INFO: Scraping Lufthansa
+2021-01-29 18:13:39,189 INFO: Getting Lufthansa control price
+2021-01-29 18:13:47,238 INFO: Lufthansa: 60 sec
+2021-01-29 18:13:48,885 INFO: Scraping Ryanair
+2021-01-29 18:14:23,194 INFO: Getting Ryanair control price
+2021-01-29 18:14:23,195 INFO: Ryanair: 34 sec
+2021-01-29 18:14:23,195 INFO: Exporting data to spreadsheet
+2021-01-29 18:14:23,220 INFO: Scraping completed in 159.24 sec
+2021-01-29 18:14:23,220 INFO: <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<

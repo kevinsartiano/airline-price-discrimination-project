@@ -35,8 +35,8 @@ class AlitaliaScraper(Scraper):
         return_date_selector.send_keys(self.itinerary['return_date'])
         validate_date_button = self.driver.find_element_by_id('validate_date')
         validate_date_button.click()
-        add_passenger_button = self.driver.find_element_by_id('addAdults')
-        add_passenger_button.click()
+        # add_passenger_button = self.driver.find_element_by_id('addAdults')
+        # add_passenger_button.click()
         # Submit search #
         submit_button = self.driver.find_element_by_id('submitHidden--prenota')
         submit_button.click()
@@ -59,24 +59,28 @@ class AlitaliaScraper(Scraper):
     def get_price(self):
         """Get price for selected flight."""
         # Get departure price #
+        self.driver.find_element_by_xpath('//a[contains(text(), "Visualizza i prossimi 10 risultati")]').click()
+        sleep(2)
         departure_node = self.wait_for_element(By.CSS_SELECTOR, ec.presence_of_element_located,
                                                f'[data-flight-time=\"{self.itinerary["departure_time"]}\"]'
                                                f'[data-flight-brandname=\"{self.itinerary["fare_brand"]}\"]')
         self.itinerary.update({'departure_price': departure_node.get_attribute('data-flight-price'),
                                'departure_flight': departure_node.get_attribute('data-flight-number')})
-        departure_node.find_element_by_class_name('fakeRadio').click()
+        departure_node.click()
         sleep(5)
         select_button = self.wait_for_element(By.CSS_SELECTOR, ec.element_to_be_clickable,
                                               '[class="firstButton j-goToReturn"]')
         select_button.click()
         sleep(5)
         # Get return price #
+        self.driver.find_element_by_xpath('//a[contains(text(), "Visualizza i prossimi 10 risultati")]').click()
+        sleep(2)
         return_node = self.wait_for_element(By.CSS_SELECTOR, ec.presence_of_element_located,
                                             f'[data-flight-time=\"{self.itinerary["return_time"]}\"]'
                                             f'[data-flight-brandname=\"{self.itinerary["fare_brand"]}\"]')
         self.itinerary.update({'return_price': return_node.get_attribute('data-flight-price'),
                                'return_flight': return_node.get_attribute('data-flight-number')})
-        return_node.find_element_by_class_name('fakeRadio').click()
+        return_node.click()
         sleep(5)
         select_button = self.wait_for_element(By.CSS_SELECTOR, ec.element_to_be_clickable,
                                               '[class="firstButton j-selectReturn"]')

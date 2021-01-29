@@ -47,9 +47,9 @@ class LufthansaScraper(Scraper):
             f'[aria-label="Choose {italian_weekday}, {day} {month} {year} as your check-out date. It\'s available."]')
         return_date.click()
         # Input passenger number #
-        self.driver.find_element_by_css_selector('[class="icon icon-right lh lh-arrow-expand"]').click()
-        self.driver.find_element_by_css_selector('[class="icon lh lh-plus"]').click()
-        self.driver.find_element_by_xpath('//span[text()="Avanti"]').click()
+        # self.driver.find_element_by_css_selector('[class="icon icon-right lh lh-arrow-expand"]').click()
+        # self.driver.find_element_by_css_selector('[class="icon lh lh-plus"]').click()
+        # self.driver.find_element_by_xpath('//span[text()="Avanti"]').click()
         # Submit search #
         self.driver.find_element_by_xpath('//span[text()="Ricerca voli"]').click()
         sleep(5)
@@ -67,7 +67,8 @@ class LufthansaScraper(Scraper):
         sleep(3)
         departure_price_container = departure_row.find_element_by_xpath(
             f'.//*[contains(text(),\"{self.itinerary["fare_brand"]}\")]/ancestor::cont-fare')
-        departure_price_container.find_element_by_xpath('.//button').click()
+        if self.itinerary['fare_brand'] != 'Economy Light':
+            departure_price_container.find_element_by_xpath('.//button').click()
         departure_price = departure_price_container.text.split('\n')[-1].split(' ')[0].replace(',', '.')
         self.itinerary.update({'departure_price': departure_price})
         # Remove bot detection cookie #
@@ -85,7 +86,8 @@ class LufthansaScraper(Scraper):
         sleep(3)
         return_price_container = return_row.find_element_by_xpath(
             f'.//*[contains(text(),\"{self.itinerary["fare_brand"]}\")]/ancestor::cont-fare')
-        return_price_container.find_element_by_xpath('.//button').click()
+        if self.itinerary['fare_brand'] != 'Economy Light':
+            return_price_container.find_element_by_xpath('.//button').click()
         return_price = return_price_container.text.split('\n')[-1].split(' ')[0].replace(',', '.')
         self.itinerary.update({'return_price': return_price})
         # Remove bot detection cookie #

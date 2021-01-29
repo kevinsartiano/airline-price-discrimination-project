@@ -15,8 +15,8 @@ def get_logger(filename: str) -> Logger:
     stream_handler.setLevel(logging.INFO)
     file_handler.setLevel(logging.INFO)
 
-    stream_formatter = logging.Formatter(fmt='%(asctime)s %(levelname)s: %(message)s', datefmt='%H:%M:%S')
-    file_formatter = logging.Formatter(fmt='%(asctime)s %(levelname)s: %(message)s', datefmt='%H:%M:%S')
+    stream_formatter = logging.Formatter(fmt='%(asctime)s %(levelname)s: %(message)s')
+    file_formatter = logging.Formatter(fmt='%(asctime)s %(levelname)s: %(message)s')
 
     stream_handler.setFormatter(stream_formatter)
     file_handler.setFormatter(file_formatter)

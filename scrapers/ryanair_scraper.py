@@ -34,9 +34,9 @@ class RyanairScraper(Scraper):
         self.driver.find_element_by_css_selector(f'[data-id="{year}-{month}-{day}"]').click()
         sleep(3)
         # Select passengers #
-        self.driver.find_element_by_xpath('//ry-counter[@data-ref="passengers-picker__adults"]/'
-                                          'div/div[@data-ref="counter.counter__increment"]').click()
-        sleep(3)
+        # self.driver.find_element_by_xpath('//ry-counter[@data-ref="passengers-picker__adults"]/'
+        #                                   'div/div[@data-ref="counter.counter__increment"]').click()
+        # sleep(3)
         # Submit search #
         self.driver.find_element_by_xpath('//*[text()=" Cerca "]').click()
         sleep(5)

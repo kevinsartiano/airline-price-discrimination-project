@@ -3,6 +3,4 @@ __pycache__/
 _extra*
 venv/
 *.json
-*.log
 *.pkl
-*.xlsx
