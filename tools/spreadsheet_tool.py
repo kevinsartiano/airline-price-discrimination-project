@@ -1,5 +1,5 @@
 """Tool to handle spreadsheet documents."""
-
+import logging
 import os
 from openpyxl import Workbook
 from openpyxl.styles import Alignment
@@ -23,10 +23,13 @@ def export_to_csv(data: list, basename: str, dirname: str = 'output'):
                'total_price', 'control_price', 'seats_left']
     sheet.append(headers)
     for row in data:
-        sheet.append([row['carrier'], row['origin'], row['destination'], row['fare_brand'],
-                     row['departure_date'], row['departure_time'], row['return_date'], row['return_time'],
-                     row['departure_flight'], row['departure_price'], row['return_flight'], row['return_price'],
-                     row['total_price'], row['control_price'], row['seats_left']])
+        try:
+            sheet.append([row['carrier'], row['origin'], row['destination'], row['fare_brand'],
+                          row['departure_date'], row['departure_time'], row['return_date'], row['return_time'],
+                          row['departure_flight'], row['departure_price'], row['return_flight'], row['return_price'],
+                          row['total_price'], row['control_price'], row['seats_left']])
+        except KeyError as e:
+            logging.warning(f'Missing {e} for {row["carrier"].capitalize()}')
     adjust_column_width(sheet)
     sheet.freeze_panes = sheet['A2']
     sheet.auto_filter.ref = sheet.dimensions

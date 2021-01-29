@@ -1,5 +1,6 @@
 """Abstract Scraper."""
 import json
+import logging
 import os
 import pickle
 import platform
@@ -11,7 +12,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.remote.webelement import WebElement
-from selenium.common.exceptions import InvalidCookieDomainException
+from selenium.common.exceptions import InvalidCookieDomainException, NoSuchElementException, TimeoutException
 
 BROWSER_DRIVER = {'Linux': {'Chrome': 'driver/chromedriver'},
                   'Windows': {'Chrome': 'driver\\chromedriver.exe'}}
@@ -64,7 +65,7 @@ class Scraper(ABC):
                 except InvalidCookieDomainException:
                     continue
         except FileNotFoundError:
-            print(f'{self.carrier.capitalize()} cookie file is missing.')
+            logging.warning(f'{self.carrier.capitalize()} cookie file is missing.')
         finally:
             pass
 
@@ -74,14 +75,19 @@ class Scraper(ABC):
 
     def scrape(self):
         """Start scraping."""
-        start_time = time.time()
-        self.driver.get(self.carrier_url)
-        self.get_availability()
-        self.get_price()
-        self.save_cookies()
-        self.driver.quit()
-        self.get_control_price()
-        print(f'{self.carrier}: {round(time.time() - start_time)} sec')
+        try:
+            logging.info(f'Scraping {self.carrier.capitalize()}')
+            start_time = time.time()
+            self.driver.get(self.carrier_url)
+            self.get_availability()
+            self.get_price()
+            self.save_cookies()
+            self.driver.quit()
+            logging.info(f'Getting {self.carrier.capitalize()} control price')
+            self.get_control_price()
+            logging.info(f'{self.carrier.capitalize()}: {round(time.time() - start_time)} sec')
+        except (NoSuchElementException, TimeoutException):
+            logging.error(f'{RED_TEXT}{self.carrier.capitalize()} scraper crashed{END_COLOR}')
 
     @abstractmethod
     def get_availability(self):
@@ -107,7 +113,7 @@ class Scraper(ABC):
             self.itinerary.update({'control_price': flight['price']['grandTotal'],
                                    'seats_left': flight['numberOfBookableSeats']})
         except (ResponseError, KeyError) as error:
-            print(RED_TEXT, f'Amadeus API Error while scraping {self.carrier.capitalize()}: {error}', END_COLOR)
+            logging.error(f'{RED_TEXT}Amadeus API Error while scraping {self.carrier.capitalize()}: {error}{END_COLOR}')
             self.itinerary.update({'control_price': 'Error with Amadeus API'})
 
     def populate_amadeus_request_body(self) -> dict:
