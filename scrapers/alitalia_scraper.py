@@ -5,6 +5,7 @@ import browser_cookie3
 from time import sleep
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
+
 from scrapers.scraper import Scraper
 
 
@@ -13,6 +14,7 @@ class AlitaliaScraper(Scraper):
 
     carrier = 'Alitalia'
     carrier_url = 'https://www.alitalia.com/it_it/homepage.html'
+    carrier_dcc = 0.00
 
     def get_availability(self):
         """Get availability."""

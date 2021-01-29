@@ -14,6 +14,8 @@ from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.common.exceptions import InvalidCookieDomainException, NoSuchElementException, TimeoutException
 
+from tools.spreadsheet_tool import export_to_csv
+
 BROWSER_DRIVER = {'Linux': {'Chrome': 'driver/chromedriver'},
                   'Windows': {'Chrome': 'driver\\chromedriver.exe'}}
 
@@ -22,12 +24,15 @@ ITALIAN_WEEKDAY = {0: 'lunedì', 1: 'martedì', 2: 'mecoledì', 3: 'giovedì', 4
 ITALIAN_MONTH = {1: 'gennaio', 2: 'febbraio', 3: 'marzo', 4: 'aprile', 5: 'maggio', 6: 'giugno',
                  7: 'luglio', 8: 'agosto', 9: 'settembre', 10: 'ottobre', 11: 'novembre', 12: 'dicembre'}
 
+AIRLINE_CODES = {'Airfrance': 'AF', 'Alitalia': 'AZ', 'Lufthansa': 'LH', 'Ryanair': 'FR'}
+
 
 class Scraper(ABC):
     """Abstract scraper class."""
 
     carrier: str = NotImplemented
     carrier_url: str = NotImplemented
+    carrier_dcc: float = NotImplemented  # GDS Distribution Cost Charge per passenger
 
     def __init__(self, browser: str, itinerary: dict):
         """Init."""
@@ -62,7 +67,7 @@ class Scraper(ABC):
                 except InvalidCookieDomainException:
                     continue
         except FileNotFoundError:
-            logging.warning(f'{self.carrier} cookie file is missing.')
+            logging.warning(f'{self.carrier} - Cookie file is missing.')
 
     def save_cookies(self):
         """Save cookies for future sessions."""
@@ -71,18 +76,20 @@ class Scraper(ABC):
     def scrape(self):
         """Start scraping."""
         try:
-            logging.info(f'Scraping {self.carrier}')
+            logging.info(f'{self.carrier} - Scraping')
             start_time = time.time()
             self.driver.get(self.carrier_url)
             self.get_availability()
             self.get_price()
             self.save_cookies()
             self.driver.quit()
-            logging.info(f'Getting {self.carrier} control price')
+            logging.info(f'{self.carrier} - Getting control price')
             self.get_control_price()
-            logging.info(f'{self.carrier}: {round(time.time() - start_time)} sec')
+            logging.info(f'{self.carrier} - Exporting data to spreadsheet')
+            export_to_csv(self)
+            logging.info(f'{self.carrier} - Completed in {round(time.time() - start_time)} sec')
         except (NoSuchElementException, TimeoutException) as error:
-            logging.error(f'{self.carrier} scraper crashed: {error.__class__.__name__} > {error}')
+            logging.error(f'{self.carrier} - Scraper crashed: {error.__class__.__name__} > {error}')
             self.driver.quit()
 
     @abstractmethod
@@ -109,7 +116,7 @@ class Scraper(ABC):
             self.itinerary.update({'control_price': flight['price']['grandTotal'],
                                    'seats_left': flight['numberOfBookableSeats']})
         except (ResponseError, KeyError) as error:
-            logging.error(f'Amadeus API Error while scraping {self.carrier}: {error.__class__.__name__} > {error}')
+            logging.error(f'{self.carrier} - Amadeus API Error while scraping: {error.__class__.__name__} > {error}')
             self.itinerary.update({'control_price': 'Error with Amadeus API'})
 
     def populate_amadeus_request_body(self) -> dict:
@@ -146,11 +153,7 @@ class Scraper(ABC):
                 {
                     "id": "1",
                     "travelerType": "ADULT"
-                },
-                {
-                    "id": "2",
-                    "travelerType": "ADULT"
-                },
+                }
             ],
             "sources": ["GDS"],
             "searchCriteria": {
@@ -162,11 +165,14 @@ class Scraper(ABC):
                         }
                     ],
                     "carrierRestrictions": {
-                        "includedCarrierCodes": ["AZ", "LH"]
+                        "includedCarrierCodes": [f"{AIRLINE_CODES[self.carrier]}"]
+                    },
+                    "connectionRestriction": {
+                        "maxNumberOfConnections": 0
                     }
                 },
                 "pricingOptions": {
-                    "includedCheckedBagsOnly": True
+                    "includedCheckedBagsOnly": False
                 }
             }
         }

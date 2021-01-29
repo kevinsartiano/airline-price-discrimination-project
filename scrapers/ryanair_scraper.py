@@ -1,6 +1,6 @@
 """Ryanair Scraper."""
-
 from time import sleep
+
 from scrapers.scraper import Scraper, ITALIAN_MONTH
 
 
@@ -9,6 +9,7 @@ class RyanairScraper(Scraper):
 
     carrier = 'Ryanair'
     carrier_url = 'https://www.ryanair.com/it/it'
+    carrier_dcc = 0.00
 
     def get_availability(self):
         """Get Ryanair availability."""
@@ -89,4 +90,4 @@ class RyanairScraper(Scraper):
 
     def get_control_price(self):
         """Unable to use Amadeus API for Ryanair's control price."""
-        self.itinerary.update({'control_price': 'Unknown', 'seats_left': 'Unknown'})
+        self.itinerary.update({'control_price': 0, 'seats_left': -1})
