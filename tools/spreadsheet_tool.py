@@ -1,10 +1,41 @@
 """Tool to handle spreadsheet documents."""
 import logging
 import os
+from collections import OrderedDict
 from datetime import datetime
-from openpyxl import load_workbook
+from openpyxl import load_workbook, Workbook
 from openpyxl.styles import Alignment
 from openpyxl.worksheet.worksheet import Worksheet
+
+
+def generate_data(scraper):
+    """Generate data to be exported."""
+    return OrderedDict(
+        {
+            'os': scraper.user['os'],
+            'browser': scraper.user['browser'],
+            'ip_address': os.popen('curl -s ifconfig.me').read(),
+            'search_date': str(datetime.now().strftime("%m-%d-%Y")),
+            'search_time': str(datetime.now().strftime("%H:%M:%S")),
+            'carrier': scraper.carrier,
+            'origin': scraper.itinerary['origin'],
+            'destination': scraper.itinerary['destination'],
+            'fare_brand': scraper.itinerary['fare_brand'],
+            'departure_date': to_date(scraper.itinerary['departure_date']),
+            'departure_time': to_time(scraper.itinerary['departure_time']),
+            'departure_flight': scraper.itinerary['departure_flight'],
+            'departure_price': to_float(scraper.itinerary['departure_price']),
+            'return_date': to_date(scraper.itinerary['return_date']),
+            'return_time': to_time(scraper.itinerary['return_time']),
+            'return_flight': scraper.itinerary['return_flight'],
+            'return_price': to_float(scraper.itinerary['return_price']),
+            'total_price': to_float(scraper.itinerary['total_price']),
+            'control_price': to_float(scraper.itinerary['control_price']) - scraper.carrier_dcc,
+            'fare_basis': None,
+            'control_fare_basis': None,
+            'seats_left': scraper.itinerary['seats_left']
+        }
+    )
 
 
 def export_to_csv(scraper, dirname: str = 'output', basename: str = 'raw_data'):
@@ -17,24 +48,17 @@ def export_to_csv(scraper, dirname: str = 'output', basename: str = 'raw_data'):
         dirname (str): directory path (defaults to 'output'). Example: /foo_1/foo_2/bar.xlsx -> /foo_1/foo_2
     """
     path = os.path.join(dirname, basename + '.xlsx')
-    book = load_workbook(path)
+    try:
+        book = load_workbook(path)
+    except FileNotFoundError:
+        logging.warning('Spreadsheet missing. New one created')
+        book = Workbook()
     sheet = book.active
     try:
-        sheet.append([scraper.carrier,
-                      scraper.itinerary['origin'],
-                      scraper.itinerary['destination'],
-                      scraper.itinerary['fare_brand'],
-                      to_date(scraper.itinerary['departure_date']),
-                      to_time(scraper.itinerary['departure_time']),
-                      to_date(scraper.itinerary['return_date']),
-                      to_time(scraper.itinerary['return_time']),
-                      scraper.itinerary['departure_flight'],
-                      to_float(scraper.itinerary['departure_price']),
-                      scraper.itinerary['return_flight'],
-                      to_float(scraper.itinerary['return_price']),
-                      to_float(scraper.itinerary['total_price']),
-                      to_float(scraper.itinerary['control_price']) - scraper.carrier_dcc,
-                      scraper.itinerary['seats_left']])
+        data = generate_data(scraper)
+        if sheet.dimensions == 'A1:A1':
+            sheet.append(list(data.keys()))
+        sheet.append(list(data.values()))
     except KeyError as error:
         logging.warning(f'{scraper.identifier} | Missing {error}')
     adjust_column_width(sheet)

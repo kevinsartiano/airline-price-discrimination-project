@@ -16,8 +16,8 @@ from selenium.common.exceptions import InvalidCookieDomainException, NoSuchEleme
     StaleElementReferenceException, ElementNotInteractableException
 from tools.spreadsheet_tool import export_to_csv
 
-BROWSER_DRIVER = {'Linux': {'Chrome': 'driver/chromedriver'},
-                  'Windows': {'Chrome': 'driver\\chromedriver.exe'}}
+BROWSER_DRIVER = {'Linux': {'Chrome': os.path.join('drivers', 'chromedriver')},
+                  'Windows': {'Chrome': os.path.join('drivers', 'chromedriver.exe')}}
 
 ITALIAN_WEEKDAY = {0: 'lunedì', 1: 'martedì', 2: 'mecoledì', 3: 'giovedì', 4: 'venerdì', 5: 'sabato', 6: 'domenica'}
 
@@ -186,4 +186,4 @@ class Scraper(ABC):
 
     def wait_for_element(self, by: By, expected_condition: expected_conditions, locator: str) -> WebElement:
         """Wait for element before fetch."""
-        return WebDriverWait(self.driver, 15).until(expected_condition((by, locator)))
+        return WebDriverWait(self.driver, 30).until(expected_condition((by, locator)))
