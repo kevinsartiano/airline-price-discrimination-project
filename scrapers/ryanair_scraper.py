@@ -1,13 +1,13 @@
 """Ryanair Scraper."""
 from time import sleep
-
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as ec
 from scrapers.scraper import Scraper, ITALIAN_MONTH
 
 
 class RyanairScraper(Scraper):
     """Ryanair Scraper Class."""
 
-    carrier = 'Ryanair'
     carrier_url = 'https://www.ryanair.com/it/it'
     carrier_dcc = 0.00
 
@@ -19,16 +19,20 @@ class RyanairScraper(Scraper):
         origin_selector.click()
         origin_selector.clear()
         origin_selector.send_keys(self.itinerary['origin'])
-        self.driver.find_element_by_css_selector(f'[data-id=\"{self.itinerary["origin"]}\"]').click()
+        self.wait_for_element(
+            By.CSS_SELECTOR, ec.element_to_be_clickable, f'[data-id="{self.itinerary["origin"]}"]').click()
+        # self.driver.find_element_by_css_selector(f'[data-id=\"{self.itinerary["origin"]}\"]').click()
         sleep(3)
         # Input destination airport #
         destination_selector = self.driver.find_element_by_id('input-button__destination')
         destination_selector.send_keys(self.itinerary['destination'])
-        self.driver.find_element_by_css_selector(f'[data-id=\"{self.itinerary["destination"]}\"]').click()
+        self.wait_for_element(
+            By.CSS_SELECTOR, ec.element_to_be_clickable, f'[data-id="{self.itinerary["destination"]}"]').click()
+        # self.driver.find_element_by_css_selector(f'[data-id=\"{self.itinerary["destination"]}\"]').click()
         sleep(3)
         # Select departure date #
         day, month, year = self.format_date(self.itinerary['departure_date'])
-        self.driver.find_element_by_xpath(f'//div[contains(text(),"{ITALIAN_MONTH[int(month)][:3]}\")]').click()
+        self.driver.find_element_by_xpath(f'//div[text()=" {ITALIAN_MONTH[int(month)][:3]} "]').click()
         self.driver.find_element_by_css_selector(f'[data-id="{year}-{month}-{day}"]').click()
         # Select return date #
         day, month, year = self.format_date(self.itinerary['return_date'])
@@ -61,7 +65,8 @@ class RyanairScraper(Scraper):
         self.itinerary.update({'departure_flight': departure_flight_number})
         flight_row.click()
         sleep(3)
-        fare_box = self.driver.find_element_by_css_selector('[data-e2e="fare-card--plus"]')
+        fare_box = self.driver.find_element_by_css_selector(
+            f'[data-e2e="fare-card--{self.itinerary["fare_brand"].lower()}"]')
         fare_box_text = fare_box.text.split("\n")
         add_on_price = float(f'{fare_box_text[-5]}.{fare_box_text[-3]}')
         departure_price = str(round(base_price + add_on_price, 2))
@@ -76,7 +81,8 @@ class RyanairScraper(Scraper):
         self.itinerary.update({'return_flight': return_flight_number})
         flight_row.click()
         sleep(3)
-        fare_box = self.driver.find_element_by_css_selector('[data-e2e="fare-card--plus"]')
+        fare_box = self.driver.find_element_by_css_selector(
+            f'[data-e2e="fare-card--{self.itinerary["fare_brand"].lower()}"]')
         fare_box_text = fare_box.text.split("\n")
         add_on_price = float(f'{fare_box_text[-5]}.{fare_box_text[-3]}')
         return_price = str(round(base_price + add_on_price, 2))

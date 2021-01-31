@@ -36,7 +36,7 @@ def export_to_csv(scraper, dirname: str = 'output', basename: str = 'raw_data'):
                       to_float(scraper.itinerary['control_price']) - scraper.carrier_dcc,
                       scraper.itinerary['seats_left']])
     except KeyError as error:
-        logging.warning(f'{scraper.carrier} - Missing {error}')
+        logging.warning(f'{scraper.identifier} | Missing {error}')
     adjust_column_width(sheet)
     sheet.freeze_panes = sheet['A2']
     sheet.auto_filter.ref = sheet.dimensions

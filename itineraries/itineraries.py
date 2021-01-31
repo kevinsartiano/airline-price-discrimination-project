@@ -1,5 +1,14 @@
 """Itineraries."""
 
+"""
+Itinerary model.
+
+<carrier name>_ITINERARIES = [{'carrier': '<carrier name>', 'fare_brand': '<fare name>',
+                               'origin': '<IATA airport code>', 'destination': '<IATA airport code>',
+                               'departure_date': '<DD/MM/YYYY>', 'departure_time': '<HH:MM>',
+                               'return_date': '<DD/MM/YYYY>', 'return_time': '<HH:MM>'}]
+"""
+
 ALITALIA_ITINERARIES = [{'carrier': 'Alitalia', 'fare_brand': 'Economy Light',
                          'origin': 'FCO', 'destination': 'CTA',
                          'departure_date': '16/07/2021', 'departure_time': '17:00',
@@ -20,5 +29,4 @@ AIRFRANCE_ITINERARIES = [{'carrier': 'Airfrance', 'fare_brand': 'Light',
                           'departure_date': '23/07/2021', 'departure_time': '18:25',
                           'return_date': '23/07/2021', 'return_time': '16:55'}]
 
-
-
+ITINERARIES = {'Alitalia': ALITALIA_ITINERARIES, 'Ryanair': RYANAIR_ITINERARIES, 'Lufthansa': LUFTHANSA_ITINERARIES}

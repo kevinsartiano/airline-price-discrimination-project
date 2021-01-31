@@ -10,7 +10,6 @@ from scrapers.scraper import Scraper, ITALIAN_WEEKDAY, ITALIAN_MONTH
 class LufthansaScraper(Scraper):
     """Lufthansa Scraper Class."""
 
-    carrier = 'Lufthansa'
     carrier_url = 'https://www.lufthansa.com/it/it/homepage'
     carrier_dcc = 79.00  # 19.00 DCC + 20.00 Fare + 40.00 Extra baggage
 

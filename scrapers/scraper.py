@@ -12,8 +12,8 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.remote.webelement import WebElement
-from selenium.common.exceptions import InvalidCookieDomainException, NoSuchElementException, TimeoutException
-
+from selenium.common.exceptions import InvalidCookieDomainException, NoSuchElementException, TimeoutException, \
+    StaleElementReferenceException, ElementNotInteractableException
 from tools.spreadsheet_tool import export_to_csv
 
 BROWSER_DRIVER = {'Linux': {'Chrome': 'driver/chromedriver'},
@@ -30,16 +30,18 @@ AIRLINE_CODES = {'Airfrance': 'AF', 'Alitalia': 'AZ', 'Lufthansa': 'LH', 'Ryanai
 class Scraper(ABC):
     """Abstract scraper class."""
 
-    carrier: str = NotImplemented
     carrier_url: str = NotImplemented
     carrier_dcc: float = NotImplemented  # GDS Distribution Cost Charge per passenger
 
-    def __init__(self, browser: str, itinerary: dict):
+    def __init__(self, user: dict, selenium_browser: str, itinerary: dict):
         """Init."""
-        if browser not in BROWSER_DRIVER[platform.system()].keys():
+        if selenium_browser not in BROWSER_DRIVER[platform.system()].keys():
             raise Exception(f'Allowed browsers are {BROWSER_DRIVER[platform.system()].keys()}')
-        self.browser = browser
+        self.selenium_browser = selenium_browser
+        self.user = user
         self.itinerary = itinerary
+        self.carrier = itinerary['carrier']
+        self.identifier = f'{self.carrier} | {self.user["user"]}'
         self.os = platform.system()
         self.driver: webdriver
         self.driver_options: webdriver
@@ -48,7 +50,7 @@ class Scraper(ABC):
     def _load_configuration(self):
         """Load required configuration."""
         self._load_driver_options()
-        self.driver = webdriver.Chrome(executable_path=BROWSER_DRIVER[self.os][self.browser],
+        self.driver = webdriver.Chrome(executable_path=BROWSER_DRIVER[self.os][self.selenium_browser],
                                        options=self.driver_options)
         self._load_cookies()
 
@@ -56,40 +58,44 @@ class Scraper(ABC):
         """Load driver options."""
         self.driver_options = webdriver.ChromeOptions()
         self.driver_options.add_argument("start-maximized")
+        self.driver_options.add_argument(f"user-agent={self.user['user_agent']}")
 
     def _load_cookies(self):
         """Load cookies from previous sessions."""
         try:
-            cookies = pickle.load(open(f"cookies_jar/{self.carrier.lower()}_cookies.pkl", "rb"))
+            cookie_jar_path = os.path.join(f'{self.user["cookie_jar"]}', f'{self.carrier.lower()}_cookies.pkl')
+            cookies = pickle.load(open(cookie_jar_path, "rb"))
             for cookie in cookies:
                 try:
                     self.driver.add_cookie(cookie)
                 except InvalidCookieDomainException:
                     continue
         except FileNotFoundError:
-            logging.warning(f'{self.carrier} - Cookie file is missing.')
+            logging.warning(f'{self.identifier} | Cookie file is missing.')
 
     def save_cookies(self):
         """Save cookies for future sessions."""
-        pickle.dump(self.driver.get_cookies(), open(f"cookies_jar/{self.carrier.lower()}_cookies.pkl", "wb"))
+        cookie_jar_path = os.path.join(f'{self.user["cookie_jar"]}', f'{self.carrier.lower()}_cookies.pkl')
+        pickle.dump(self.driver.get_cookies(), open(cookie_jar_path, "wb"))
 
     def scrape(self):
         """Start scraping."""
         try:
-            logging.info(f'{self.carrier} - Scraping')
+            logging.info(f'{self.identifier} | Scraping')
             start_time = time.time()
             self.driver.get(self.carrier_url)
             self.get_availability()
             self.get_price()
             self.save_cookies()
             self.driver.quit()
-            logging.info(f'{self.carrier} - Getting control price')
+            logging.info(f'{self.identifier} | Getting control price')
             self.get_control_price()
-            logging.info(f'{self.carrier} - Exporting data to spreadsheet')
+            logging.info(f'{self.identifier} | Exporting data to spreadsheet')
             export_to_csv(self)
-            logging.info(f'{self.carrier} - Completed in {round(time.time() - start_time)} sec')
-        except (NoSuchElementException, TimeoutException) as error:
-            logging.error(f'{self.carrier} - Scraper crashed: {error.__class__.__name__} > {error}')
+            logging.info(f'{self.identifier} | Completed in {round(time.time() - start_time)} sec')
+        except (NoSuchElementException, TimeoutException, StaleElementReferenceException,
+                ElementNotInteractableException) as error:
+            logging.error(f'{self.identifier} | Scraper crashed: {error.__class__.__name__} > {error}')
             self.driver.quit()
 
     @abstractmethod
@@ -116,7 +122,7 @@ class Scraper(ABC):
             self.itinerary.update({'control_price': flight['price']['grandTotal'],
                                    'seats_left': flight['numberOfBookableSeats']})
         except (ResponseError, KeyError) as error:
-            logging.error(f'{self.carrier} - Amadeus API Error while scraping: {error.__class__.__name__} > {error}')
+            logging.error(f'{self.identifier} | Amadeus API Error while scraping: {error.__class__.__name__} > {error}')
             self.itinerary.update({'control_price': 'Error with Amadeus API'})
 
     def populate_amadeus_request_body(self) -> dict:

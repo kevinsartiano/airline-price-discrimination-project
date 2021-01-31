@@ -5,14 +5,12 @@ import browser_cookie3
 from time import sleep
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
-
 from scrapers.scraper import Scraper
 
 
 class AlitaliaScraper(Scraper):
     """Alitalia Scraper Class."""
 
-    carrier = 'Alitalia'
     carrier_url = 'https://www.alitalia.com/it_it/homepage.html'
     carrier_dcc = 0.00
 
@@ -46,7 +44,7 @@ class AlitaliaScraper(Scraper):
 
     def get_ak_bmsc_valid_value(self) -> str:
         """Get valid value for ak_bmsc cookie."""
-        webbrowser.open_new_tab(self.carrier_url)
+        webbrowser.open_new(self.carrier_url)
         cookie_jar = browser_cookie3.chrome()
         os.system("wmctrl -c :ACTIVE:")  # close chrome window used to get valid cookie
         ak_bmsc_new_value = None
@@ -61,8 +59,6 @@ class AlitaliaScraper(Scraper):
     def get_price(self):
         """Get price for selected flight."""
         # Get departure price #
-        self.driver.find_element_by_xpath('//a[contains(text(), "Visualizza i prossimi 10 risultati")]').click()
-        sleep(2)
         departure_node = self.wait_for_element(By.CSS_SELECTOR, ec.presence_of_element_located,
                                                f'[data-flight-time=\"{self.itinerary["departure_time"]}\"]'
                                                f'[data-flight-brandname=\"{self.itinerary["fare_brand"]}\"]')
@@ -74,14 +70,19 @@ class AlitaliaScraper(Scraper):
                                               '[class="firstButton j-goToReturn"]')
         select_button.click()
         sleep(5)
+        # Show hidden flights #
+        load_more_button = self.wait_for_element(
+            By.XPATH, ec.element_to_be_clickable,
+            '//a[@data-details-route="1"][@class="bookingTable__bodyRowLoadMoreLink j-loadMoreBookingRow"]')
+        self.driver.execute_script("arguments[0].scrollIntoView();", load_more_button)
+        load_more_button.click()
         # Get return price #
-        self.driver.find_element_by_xpath('//a[contains(text(), "Visualizza i prossimi 10 risultati")]').click()
-        sleep(2)
         return_node = self.wait_for_element(By.CSS_SELECTOR, ec.presence_of_element_located,
                                             f'[data-flight-time=\"{self.itinerary["return_time"]}\"]'
                                             f'[data-flight-brandname=\"{self.itinerary["fare_brand"]}\"]')
         self.itinerary.update({'return_price': return_node.get_attribute('data-flight-price'),
                                'return_flight': return_node.get_attribute('data-flight-number')})
+        self.driver.execute_script("arguments[0].scrollIntoView();", return_node)
         return_node.click()
         sleep(5)
         select_button = self.wait_for_element(By.CSS_SELECTOR, ec.element_to_be_clickable,
@@ -89,7 +90,6 @@ class AlitaliaScraper(Scraper):
         select_button.click()
         sleep(10)
         # Get total price
-        # total_price = self.driver.find_element_by_id('basketPrice-text')
         total_price_box = self.wait_for_element(By.ID, ec.presence_of_element_located, 'basketPrice-text')
         total_price = total_price_box.text[2:].replace(',', '.')
         self.itinerary.update({'total_price': total_price})
