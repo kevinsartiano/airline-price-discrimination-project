@@ -5,7 +5,7 @@ import browser_cookie3
 from time import sleep
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
-from scrapers.scraper import Scraper
+from scrapers.scraper import Scraper, ITALIAN_MONTH
 
 
 class AlitaliaScraper(Scraper):
@@ -31,10 +31,19 @@ class AlitaliaScraper(Scraper):
         origin_selector.clear()
         origin_selector.send_keys(self.itinerary['origin'])
         destination_selector.send_keys(self.itinerary['destination'])
-        departure_date_selector.send_keys(self.itinerary['departure_date'])
-        return_date_selector.send_keys(self.itinerary['return_date'])
-        validate_date_button = self.driver.find_element_by_id('validate_date')
-        validate_date_button.click()
+        self.driver.find_element_by_id('data-andata--prenota-desk').click()
+        if self.user['user'] in ['Android-Chrome', 'iOS-Safari']:
+            day, month, year = self.format_alitalia_date(self.itinerary['departure_date'])
+            self.scroll_to_month(month.capitalize())
+            self.driver.find_element_by_xpath(f'//a[text()="{day}"]').click()
+            day, month, year = self.format_alitalia_date(self.itinerary['return_date'])
+            self.driver.find_element_by_xpath(f'//a[text()="{day}"]').click()
+        else:
+            departure_date_selector.send_keys(self.itinerary['departure_date'])
+            return_date_selector.send_keys(self.itinerary['return_date'])
+            validate_date_button = self.driver.find_element_by_id('validate_date')
+            validate_date_button.click()
+        sleep(2)
         # add_passenger_button = self.driver.find_element_by_id('addAdults')
         # add_passenger_button.click()
         # Submit search #
@@ -55,6 +64,27 @@ class AlitaliaScraper(Scraper):
         if ak_bmsc_new_value:
             return ak_bmsc_new_value.replace('+', ' ')
         return ''
+
+    @staticmethod
+    def format_alitalia_date(date: str):
+        """Format weekday and date for Alitalia date picker."""
+        date_list = date.split('/')
+        day = int(date_list[0])
+        month = int(date_list[1])
+        year = int(date_list[2])
+        return f'{day:02d}', ITALIAN_MONTH[month], str(year)
+
+    def scroll_to_month(self, month: str):
+        """Scroll to required month for Alitalia date picker."""
+        visible_month = self.visible_month()
+        while month not in visible_month:
+            next_button = self.driver.find_element_by_css_selector('[title="Succ>"]')
+            next_button.click()
+            visible_month = self.visible_month()
+
+    def visible_month(self) -> str:
+        """Get visible month for Lufthansa date picker.."""
+        return self.driver.find_element_by_css_selector('[class="ui-datepicker-month"]').text
 
     def get_price(self):
         """Get price for selected flight."""

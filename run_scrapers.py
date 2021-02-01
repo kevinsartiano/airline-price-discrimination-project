@@ -1,6 +1,8 @@
 """Run Scrapers."""
 import os
+import subprocess
 import time
+import requests
 from datetime import timedelta
 from itineraries.itineraries import ITINERARIES
 from scrapers.alitalia_scraper import AlitaliaScraper
@@ -21,9 +23,14 @@ if __name__ == '__main__':
         start_time = time.time()
         logger.info(f'{carrier} scraping session started'.upper())
         for user in USER_LIST:
-            os.system(f'nordvpn connect {user["vpn_server"]}')
+            # subprocess.run(['nordvpn', 'disconnect'])
+            # time.sleep(3)
+            subprocess.run(['nordvpn', 'connect', f'{user["vpn_server"]}'])
             time.sleep(3)
-            ip_address = os.popen('curl -s ifconfig.me').read()
+            try:
+                ip_address = requests.get('https://ifconfig.me').text
+            except requests.exceptions.ConnectionError:
+                ip_address = 'Error'
             if ip_address != user["ip_address"]:
                 logger.error(f'{user["user"]}: IP address should be {user["ip_address"]} instead of {ip_address}!')
             for itinerary in ITINERARIES[carrier]:

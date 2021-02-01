@@ -118,7 +118,7 @@ class LufthansaScraper(Scraper):
             visible_month = self.visible_month()
 
     def visible_month(self) -> str:
-        """Get visible month for Lufthansa date picker.."""
+        """Get visible month for Lufthansa date picker."""
         webelements = self.driver.find_elements_by_tag_name('strong')
         for webelement in webelements:
             if '2021' in webelement.text:
