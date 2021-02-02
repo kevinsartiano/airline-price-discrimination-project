@@ -1,5 +1,7 @@
 """Ryanair Scraper."""
 from time import sleep
+
+from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
 from scrapers.scraper import Scraper, ITALIAN_MONTH
@@ -40,7 +42,8 @@ class RyanairScraper(Scraper):
         while ITALIAN_MONTH[int(month)].capitalize() not in self.driver.find_element_by_tag_name(
                 'ry-datepicker').text:
             self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-            sleep(1)
+            sleep(2)
+        sleep(2)
         self.driver.find_element_by_css_selector(
             f'[aria-label="{str(int(day))} {str(int(month))} {year}"]').click()
         day, month, year = self.format_date(self.itinerary['return_date'])
@@ -104,6 +107,12 @@ class RyanairScraper(Scraper):
         # Select departure flight #
         flight_row = self.driver.find_element_by_xpath(
             f'//*[contains(text()," {self.itinerary["departure_time"]}")]/ancestor::flights-flight-card')
+        try:
+            seats_left = int(flight_row.find_element_by_xpath(
+                './/span[contains(text(),"a questo prezzo")]').text.split(' ')[0])
+        except NoSuchElementException:
+            seats_left = 9
+        self.itinerary.update({'seats_left': seats_left})
         departure_flight_number = flight_row.find_element_by_css_selector(
             '[class="card-info__flight ng-star-inserted"]').text
         self.itinerary.update({'departure_flight': departure_flight_number})
@@ -121,6 +130,12 @@ class RyanairScraper(Scraper):
         # Select return flight #
         flight_row = self.driver.find_element_by_xpath(
             f'//*[contains(text()," {self.itinerary["return_time"]}")]/ancestor::flights-flight-card')
+        try:
+            seats_left = int(flight_row.find_element_by_xpath(
+                './/span[contains(text(),"a questo prezzo")]').text.split(' ')[0])
+        except NoSuchElementException:
+            seats_left = 9
+        self.itinerary.update({'seats_left': seats_left})
         return_flight_number = flight_row.find_element_by_css_selector(
             '[class="card-info__flight ng-star-inserted"]').text
         self.itinerary.update({'return_flight': return_flight_number})
@@ -145,6 +160,12 @@ class RyanairScraper(Scraper):
         # Select departure flight #
         flight_row = self.driver.find_element_by_xpath(
             f'//*[text()=" {self.itinerary["departure_time"]} "]/ancestor::flight-card')
+        try:
+            seats_left = int(flight_row.find_element_by_xpath(
+                './/span[contains(text(),"a questo prezzo")]').text.split(' ')[0])
+        except NoSuchElementException:
+            seats_left = 9
+        self.itinerary.update({'seats_left': seats_left})
         base_price = float(flight_row.text.split('\n')[-1][:-2].replace(',', '.'))
         departure_flight_number = flight_row.find_element_by_css_selector('[class="card-flight-num__content"]').text
         self.itinerary.update({'departure_flight': departure_flight_number})
@@ -161,6 +182,13 @@ class RyanairScraper(Scraper):
         # Select return flight #
         flight_row = self.driver.find_element_by_xpath(
             f'//*[text()=" {self.itinerary["return_time"]} "]/ancestor::flight-card')
+        try:
+            seats_left = int(flight_row.find_element_by_xpath(
+                './/span[contains(text(),"a questo prezzo")]').text.split(' ')[0])
+        except NoSuchElementException:
+            seats_left = 9
+        if seats_left < self.itinerary['seats_left']:
+            self.itinerary.update({'seats_left': seats_left})
         base_price = float(flight_row.text.split('\n')[-1][:-2].replace(',', '.'))
         return_flight_number = flight_row.find_element_by_css_selector('[class="card-flight-num__content"]').text
         self.itinerary.update({'return_flight': return_flight_number})
@@ -189,3 +217,4 @@ class RyanairScraper(Scraper):
                                          run_with_cookies=False, export=False)
         control_scraper.scrape()
         self.itinerary['control_price'] = control_scraper.itinerary['total_price']
+
