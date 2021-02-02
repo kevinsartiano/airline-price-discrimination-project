@@ -33,13 +33,16 @@ class Scraper(ABC):
     carrier_url: str = NotImplemented
     carrier_dcc: float = NotImplemented  # GDS Distribution Cost Charge per passenger
 
-    def __init__(self, user: dict, selenium_browser: str, itinerary: dict):
+    def __init__(self, user: dict, selenium_browser: str, itinerary: dict,
+                 run_with_cookies: bool = True, export: bool = True):
         """Init."""
         if selenium_browser not in BROWSER_DRIVER[platform.system()].keys():
             raise Exception(f'Allowed browsers are {BROWSER_DRIVER[platform.system()].keys()}')
         self.selenium_browser = selenium_browser
         self.user = user
         self.itinerary = itinerary
+        self.run_with_cookies = run_with_cookies
+        self.export = export
         self.carrier = itinerary['carrier']
         self.identifier = f'{self.carrier} | {self.user["user"]}'
         self.os = platform.system()
@@ -52,7 +55,8 @@ class Scraper(ABC):
         self._load_driver_options()
         self.driver = webdriver.Chrome(executable_path=BROWSER_DRIVER[self.os][self.selenium_browser],
                                        options=self.driver_options)
-        self._load_cookies()
+        if self.run_with_cookies:
+            self._load_cookies()
 
     def _load_driver_options(self):
         """Load driver options."""
@@ -86,13 +90,17 @@ class Scraper(ABC):
             self.driver.get(self.carrier_url)
             self.get_availability()
             self.get_price()
-            self.save_cookies()
+            if self.run_with_cookies:
+                self.save_cookies()
+            if self.export:
+                logging.info(f'{self.identifier} | Getting control price')
+                self.get_control_price()
+                logging.info(f'{self.identifier} | Exporting data to spreadsheet')
+                export_to_csv(self)
+                logging.info(f'{self.identifier} | Completed in {round(time.time() - start_time)} sec')
             self.driver.quit()
-            logging.info(f'{self.identifier} | Getting control price')
-            self.get_control_price()
-            logging.info(f'{self.identifier} | Exporting data to spreadsheet')
-            export_to_csv(self)
-            logging.info(f'{self.identifier} | Completed in {round(time.time() - start_time)} sec')
+        # HACK: for testing
+        # except ValueError as error:
         except (NoSuchElementException, TimeoutException, StaleElementReferenceException,
                 ElementNotInteractableException) as error:
             logging.error(f'{self.identifier} | Scraper crashed: {error.__class__.__name__} > {error}')

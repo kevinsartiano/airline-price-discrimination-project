@@ -11,8 +11,9 @@ from scrapers.ryanair_scraper import RyanairScraper
 from tools.logger_tool import get_logger
 from users.user_profiles import USER_LIST
 
+# HACK: for testing
+# CARRIER_SCRAPERS = {'Ryanair': RyanairScraper}
 CARRIER_SCRAPERS = {'Alitalia': AlitaliaScraper, 'Ryanair': RyanairScraper, 'Lufthansa': LufthansaScraper}
-# CARRIER_SCRAPERS = {'Alitalia': AlitaliaScraper}
 
 
 if __name__ == '__main__':
@@ -23,6 +24,7 @@ if __name__ == '__main__':
         start_time = time.time()
         logger.info(f'{carrier} scraping session started'.upper())
         for user in USER_LIST:
+            # FIXME: keep an eye on it
             # subprocess.run(['nordvpn', 'disconnect'])
             # time.sleep(3)
             subprocess.run(['nordvpn', 'connect', f'{user["vpn_server"]}'])

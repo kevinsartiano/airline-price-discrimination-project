@@ -46,6 +46,7 @@ class LufthansaScraper(Scraper):
         return_date = self.driver.find_element_by_css_selector(
             f'[aria-label="Choose {italian_weekday}, {day} {month} {year} as your check-out date. It\'s available."]')
         return_date.click()
+        # TODO: select number of passengers
         # Input passenger number #
         # self.driver.find_element_by_css_selector('[class="icon icon-right lh lh-arrow-expand"]').click()
         # self.driver.find_element_by_css_selector('[class="icon lh lh-plus"]').click()

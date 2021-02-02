@@ -50,5 +50,6 @@ IOS_SAFARI = {
     'cookie_jar': os.path.join('cookie_jars', 'ios_safari')
 }
 
-USER_LIST = [WINDOWS_CHROME, ANDROID_CHROME, MACOS_SAFARI, IOS_SAFARI]
+# HACK: for testing
 # USER_LIST = [IOS_SAFARI]
+USER_LIST = [WINDOWS_CHROME, ANDROID_CHROME, MACOS_SAFARI, IOS_SAFARI]

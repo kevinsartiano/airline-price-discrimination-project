@@ -44,6 +44,8 @@ class AlitaliaScraper(Scraper):
             validate_date_button = self.driver.find_element_by_id('validate_date')
             validate_date_button.click()
         sleep(2)
+        # TODO: select number of passengers
+        # Input passenger number #
         # add_passenger_button = self.driver.find_element_by_id('addAdults')
         # add_passenger_button.click()
         # Submit search #
