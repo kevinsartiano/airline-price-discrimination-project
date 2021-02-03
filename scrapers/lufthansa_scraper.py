@@ -99,6 +99,10 @@ class LufthansaScraper(Scraper):
             '[class="shopping-cart-total-price__totalPrice ng-scope ng-isolate-scope"]')
         total_price = total_price_box.text[:-4].replace(',', '.')
         self.itinerary.update({'total_price': total_price})
+        fare_basis_node = self.driver.execute_script('return clientSideData')
+        dep_fare_basis = fare_basis_node['PAGE']['PANELS']['IRC_FLIGHTS']['SETTINGS']['FARE_BASIS_SEGMENT_1']['VALUE']
+        ret_fare_basis = fare_basis_node['PAGE']['PANELS']['IRC_FLIGHTS']['SETTINGS']['FARE_BASIS_SEGMENT_2']['VALUE']
+        self.itinerary.update({'dep_fare_basis': dep_fare_basis, 'ret_fare_basis': ret_fare_basis})
 
     @staticmethod
     def format_lufthansa_date(date: str):

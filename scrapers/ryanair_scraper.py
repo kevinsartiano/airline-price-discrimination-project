@@ -211,10 +211,13 @@ class RyanairScraper(Scraper):
         """Unable to use Amadeus API for Ryanair's control price."""
         # HACK: missing feature
         self.itinerary.update({'seats_left': -1})
-        control_user = self.user
+        control_user = self.user.copy()
         control_user['user'] += '(control)'
         control_scraper = RyanairScraper(user=control_user, selenium_browser='Chrome', itinerary=self.itinerary,
                                          run_with_cookies=False, export=False)
         control_scraper.scrape()
-        self.itinerary['control_price'] = control_scraper.itinerary['total_price']
-
+        self.itinerary.update({'control_price': control_scraper.itinerary['total_price'],
+                               'dep_fare_basis': 'N/A',
+                               'dep_control_fare_basis': 'N/A',
+                               'ret_fare_basis': 'N/A',
+                               'ret_control_fare_basis': 'N/A'})

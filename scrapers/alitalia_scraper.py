@@ -125,3 +125,7 @@ class AlitaliaScraper(Scraper):
         total_price_box = self.wait_for_element(By.ID, ec.presence_of_element_located, 'basketPrice-text')
         total_price = total_price_box.text[2:].replace(',', '.')
         self.itinerary.update({'total_price': total_price})
+        fare_basis_node = self.driver.execute_script('return fp_data')
+        dep_fare_basis = fare_basis_node['depFareBasis']
+        ret_fare_basis = fare_basis_node['retFareBasis']
+        self.itinerary.update({'dep_fare_basis': dep_fare_basis, 'ret_fare_basis': ret_fare_basis})

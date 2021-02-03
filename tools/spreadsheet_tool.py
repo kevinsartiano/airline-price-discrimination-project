@@ -31,8 +31,10 @@ def generate_data(scraper):
             'return_price': to_float(scraper.itinerary['return_price']),
             'total_price': to_float(scraper.itinerary['total_price']),
             'control_price': to_float(scraper.itinerary['control_price']) - scraper.carrier_dcc,
-            'fare_basis': None,
-            'control_fare_basis': None,
+            'dep_fare_basis': scraper.itinerary['dep_fare_basis'],
+            'dep_control_fare_basis': scraper.itinerary['dep_control_fare_basis'],
+            'ret_fare_basis': scraper.itinerary['ret_fare_basis'],
+            'ret_control_fare_basis': scraper.itinerary['ret_control_fare_basis'],
             'seats_left': scraper.itinerary['seats_left']
         }
     )

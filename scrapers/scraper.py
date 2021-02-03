@@ -67,7 +67,8 @@ class Scraper(ABC):
     def _load_cookies(self):
         """Load cookies from previous sessions."""
         try:
-            cookie_jar_path = os.path.join(f'{self.user["cookie_jar"]}', f'{self.carrier.lower()}_cookies.pkl')
+            cookie_jar_path = os.path.join(
+                f'{self.user["cookie_jar"]}', f'{self.user["user"].lower()}_{self.carrier.lower()}_cookies.pkl')
             cookies = pickle.load(open(cookie_jar_path, "rb"))
             for cookie in cookies:
                 try:
@@ -79,7 +80,8 @@ class Scraper(ABC):
 
     def save_cookies(self):
         """Save cookies for future sessions."""
-        cookie_jar_path = os.path.join(f'{self.user["cookie_jar"]}', f'{self.carrier.lower()}_cookies.pkl')
+        cookie_jar_path = os.path.join(
+            f'{self.user["cookie_jar"]}', f'{self.user["user"].lower()}_{self.carrier.lower()}_cookies.pkl')
         pickle.dump(self.driver.get_cookies(), open(cookie_jar_path, "wb"))
 
     def scrape(self):
@@ -127,8 +129,11 @@ class Scraper(ABC):
                     if self.itinerary['return_time'] in json.dumps(flight_element):
                         flight = flight_element
                         break
-            self.itinerary.update({'control_price': flight['price']['grandTotal'],
-                                   'seats_left': flight['numberOfBookableSeats']})
+            self.itinerary.update(
+                {'control_price': flight['price']['grandTotal'],
+                 'seats_left': flight['numberOfBookableSeats'],
+                 'dep_control_fare_basis': flight['travelerPricings'][0]['fareDetailsBySegment'][0]['fareBasis'],
+                 'ret_control_fare_basis': flight['travelerPricings'][0]['fareDetailsBySegment'][1]['fareBasis']})
         except (ResponseError, KeyError) as error:
             logging.error(f'{self.identifier} | Amadeus API Error while scraping: {error.__class__.__name__} > {error}')
             self.itinerary.update({'control_price': 'Error with Amadeus API'})
