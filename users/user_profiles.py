@@ -45,8 +45,8 @@ IOS_SAFARI = {
     'os': 'iOS 14.3',
     'browser': 'Safari 14.0',
     'user_agent': IOS_SAFARI_UA,
-    'vpn_server': 'it185',
-    'ip_address': '84.17.59.143',
+    'vpn_server': 'it190',
+    'ip_address': '37.120.201.244',
     'cookie_jar': os.path.join('cookie_jars', 'ios_safari')
 }
 

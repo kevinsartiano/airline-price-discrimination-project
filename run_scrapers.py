@@ -9,6 +9,7 @@ from scrapers.alitalia_scraper import AlitaliaScraper
 from scrapers.lufthansa_scraper import LufthansaScraper
 from scrapers.ryanair_scraper import RyanairScraper
 from tools.logger_tool import get_logger
+from tools.spreadsheet_tool import OUTPUT_FOLDER
 from users.user_profiles import USER_LIST
 
 # HACK: for testing
@@ -17,18 +18,17 @@ CARRIER_SCRAPERS = {'Alitalia': AlitaliaScraper, 'Ryanair': RyanairScraper, 'Luf
 
 
 if __name__ == '__main__':
-    logger = get_logger(filename=os.path.join('output', 'logbook.log'))
+    logger = get_logger(filename=os.path.join(OUTPUT_FOLDER, 'logbook.log'))
     logger.info('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
     total_start_time = time.time()
     for carrier, scraper_class in CARRIER_SCRAPERS.items():
         start_time = time.time()
         logger.info(f'{carrier} scraping session started'.upper())
         for user in USER_LIST:
-            # FIXME: keep an eye on it
-            # subprocess.run(['nordvpn', 'disconnect'])
-            # time.sleep(3)
+            subprocess.run(['nordvpn', 'disconnect'])
+            time.sleep(5)
             subprocess.run(['nordvpn', 'connect', f'{user["vpn_server"]}'])
-            time.sleep(3)
+            time.sleep(5)
             try:
                 ip_address = requests.get('https://ifconfig.me').text
             except requests.exceptions.ConnectionError:
@@ -38,7 +38,9 @@ if __name__ == '__main__':
             for itinerary in ITINERARIES[carrier]:
                 scraper = scraper_class(user=user, selenium_browser='Chrome', itinerary=itinerary)
                 scraper.scrape()
+                time.sleep(5)
         logger.info(f'{carrier} scraping session completed in {timedelta(seconds=round(time.time() - start_time))}')
         logger.info('- - - - - - - - - - - - - - - - - - - - - -')
+        time.sleep(5)
     logger.info(f'Total scraping completed in {timedelta(seconds=round(time.time() - total_start_time))}')
     logger.info('<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<')

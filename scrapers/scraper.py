@@ -16,7 +16,8 @@ from selenium.common.exceptions import InvalidCookieDomainException, NoSuchEleme
     StaleElementReferenceException, ElementNotInteractableException
 from tools.spreadsheet_tool import export_to_csv
 
-BROWSER_DRIVER = {'Linux': {'Chrome': os.path.join('drivers', 'chromedriver')},
+BROWSER_DRIVER = {'Linux': {'Chrome': os.path.join('drivers', 'chromedriver'),
+                            'Firefox': os.path.join('drivers', 'geckodriver')},
                   'Windows': {'Chrome': os.path.join('drivers', 'chromedriver.exe')}}
 
 ITALIAN_WEEKDAY = {0: 'lunedì', 1: 'martedì', 2: 'mecoledì', 3: 'giovedì', 4: 'venerdì', 5: 'sabato', 6: 'domenica'}
@@ -53,14 +54,21 @@ class Scraper(ABC):
     def _load_configuration(self):
         """Load required configuration."""
         self._load_driver_options()
-        self.driver = webdriver.Chrome(executable_path=BROWSER_DRIVER[self.os][self.selenium_browser],
-                                       options=self.driver_options)
+        if self.selenium_browser == 'Chrome':
+            self.driver = webdriver.Chrome(executable_path=BROWSER_DRIVER[self.os][self.selenium_browser],
+                                           options=self.driver_options)
+        elif self.selenium_browser == 'Firefox':
+            self.driver = webdriver.Firefox(executable_path=BROWSER_DRIVER[self.os][self.selenium_browser],
+                                            options=self.driver_options)
         if self.run_with_cookies:
             self._load_cookies()
 
     def _load_driver_options(self):
         """Load driver options."""
-        self.driver_options = webdriver.ChromeOptions()
+        if self.selenium_browser == 'Chrome':
+            self.driver_options = webdriver.ChromeOptions()
+        elif self.selenium_browser == 'Firefox':
+            self.driver_options = webdriver.FirefoxOptions()
         self.driver_options.add_argument("start-maximized")
         self.driver_options.add_argument(f"user-agent={self.user['user_agent']}")
 
@@ -199,4 +207,4 @@ class Scraper(ABC):
 
     def wait_for_element(self, by: By, expected_condition: expected_conditions, locator: str) -> WebElement:
         """Wait for element before fetch."""
-        return WebDriverWait(self.driver, 30).until(expected_condition((by, locator)))
+        return WebDriverWait(self.driver, 60).until(expected_condition((by, locator)))

@@ -25,25 +25,25 @@ class RyanairScraper(Scraper):
     def mobile_search(self):
         """Start search for mobile user profile."""
         self.driver.find_element_by_css_selector('[aria-label="Inizia a cercare"]').click()
-        sleep(2)
+        sleep(3)
         self.driver.find_element_by_css_selector('[data-ref="flight-search-controls__route-from"]').click()
-        sleep(2)
+        sleep(3)
         origin_selector = self.driver.find_element_by_css_selector('[data-ref="search-filter__input"]')
         origin_selector.send_keys(self.itinerary['origin'])
         self.driver.find_element_by_css_selector('[class="airport__name h3"]').click()
         self.driver.find_element_by_css_selector('[data-ref="flight-search-controls__route-to"]').click()
-        sleep(2)
+        sleep(3)
         destination_selector = self.driver.find_element_by_css_selector('[data-ref="search-filter__input"]')
         destination_selector.send_keys(self.itinerary['destination'])
         self.driver.find_element_by_css_selector('[class="airport__name h3"]').click()
-        sleep(2)
+        sleep(3)
         self.driver.find_element_by_css_selector('[data-ref="flight-search-controls__calendar"]').click()
         day, month, year = self.format_date(self.itinerary['departure_date'])
         while ITALIAN_MONTH[int(month)].capitalize() not in self.driver.find_element_by_tag_name(
                 'ry-datepicker').text:
             self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-            sleep(2)
-        sleep(2)
+            sleep(3)
+        sleep(3)
         self.driver.find_element_by_css_selector(
             f'[aria-label="{str(int(day))} {str(int(month))} {year}"]').click()
         day, month, year = self.format_date(self.itinerary['return_date'])
@@ -52,7 +52,7 @@ class RyanairScraper(Scraper):
         sleep(3)
         # Submit search #
         self.driver.find_element_by_css_selector('[data-ref="continue-flow__button"]').click()
-        sleep(5)
+        sleep(10)
 
     def desktop_search(self):
         """Start search for desktop user profile."""
@@ -84,7 +84,7 @@ class RyanairScraper(Scraper):
         # sleep(3)
         # Submit search #
         self.driver.find_element_by_xpath('//*[text()=" Cerca "]').click()
-        sleep(5)
+        sleep(10)
 
     @staticmethod
     def format_date(date: str):
@@ -150,7 +150,7 @@ class RyanairScraper(Scraper):
         sleep(1)
         self.driver.find_element_by_xpath('//*[text()=" Continua "]').click()
         sleep(3)
-        total_price_box = self.driver.find_element_by_css_selector('[class="ng-tns-c6-0 price ng-star-inserted"]')
+        total_price_box = self.driver.find_element_by_tag_name('ry-basket-total')
         total_price_text = total_price_box.text.split('\n')
         total_price = f'{total_price_text[1]}.{total_price_text[3]}'
         self.itinerary.update({'total_price': total_price})
@@ -167,7 +167,8 @@ class RyanairScraper(Scraper):
             seats_left = 9
         self.itinerary.update({'seats_left': seats_left})
         base_price = float(flight_row.text.split('\n')[-1][:-2].replace(',', '.'))
-        departure_flight_number = flight_row.find_element_by_css_selector('[class="card-flight-num__content"]').text
+        departure_flight_number = flight_row.find_element_by_xpath(
+            './/div[contains(@class, "card-flight-num__content")]').text
         self.itinerary.update({'departure_flight': departure_flight_number})
         flight_row.click()
         sleep(3)
@@ -190,7 +191,8 @@ class RyanairScraper(Scraper):
         if seats_left < self.itinerary['seats_left']:
             self.itinerary.update({'seats_left': seats_left})
         base_price = float(flight_row.text.split('\n')[-1][:-2].replace(',', '.'))
-        return_flight_number = flight_row.find_element_by_css_selector('[class="card-flight-num__content"]').text
+        return_flight_number = flight_row.find_element_by_xpath(
+            './/div[contains(@class, "card-flight-num__content")]').text
         self.itinerary.update({'return_flight': return_flight_number})
         flight_row.click()
         sleep(3)
@@ -202,7 +204,7 @@ class RyanairScraper(Scraper):
         self.itinerary.update({'return_price': return_price})
         fare_box.click()
         sleep(3)
-        total_price_box = self.driver.find_element_by_css_selector('[class="ng-tns-c17-1 price ng-star-inserted"]')
+        total_price_box = self.driver.find_element_by_tag_name('ry-basket-total')
         total_price_text = total_price_box.text.split('\n')
         total_price = f'{total_price_text[1]}.{total_price_text[3]}'
         self.itinerary.update({'total_price': total_price})

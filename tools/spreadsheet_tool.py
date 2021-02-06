@@ -7,6 +7,8 @@ from openpyxl import load_workbook, Workbook
 from openpyxl.styles import Alignment
 from openpyxl.worksheet.worksheet import Worksheet
 
+OUTPUT_FOLDER = 'output'
+
 
 def generate_data(scraper):
     """Generate data to be exported."""
@@ -40,7 +42,7 @@ def generate_data(scraper):
     )
 
 
-def export_to_csv(scraper, dirname: str = 'output', basename: str = 'raw_data'):
+def export_to_csv(scraper, dirname: str = OUTPUT_FOLDER, basename: str = 'raw_data'):
     """
     Export to CSV file.
 

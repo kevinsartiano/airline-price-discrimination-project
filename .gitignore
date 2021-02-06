@@ -1,6 +1,7 @@
 .idea/
 __pycache__/
 _extra*
+drivers/*
 venv/
 *.json
 *.log

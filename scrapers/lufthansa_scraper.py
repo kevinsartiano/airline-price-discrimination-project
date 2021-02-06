@@ -17,7 +17,7 @@ class LufthansaScraper(Scraper):
         """Get Lufthansa availability."""
         self.driver.delete_cookie('ak_bmsc')
         self.driver.find_element_by_id('cm-acceptAll').click()
-        sleep(3)
+        sleep(5)
         try:
             self.driver.find_element_by_xpath('//button[@aria-label="Chiudi "]').click()
         except NoSuchElementException:
@@ -27,12 +27,12 @@ class LufthansaScraper(Scraper):
         origin_selector.click()
         origin_selector.send_keys(Keys.CONTROL + "a" + Keys.DELETE)
         origin_selector.send_keys(self.itinerary['origin'])
-        sleep(3)
+        sleep(5)
         # Input destination airport #
         destination_selector = self.driver.find_element_by_name('flightQuery.flightSegments[0].destinationCode')
         destination_selector.click()
         destination_selector.send_keys(self.itinerary['destination'])
-        sleep(3)
+        sleep(5)
         # Input departure date #
         self.driver.find_element_by_name('flightQuery.flightSegments[0].travelDatetime').click()
         italian_weekday, day, month, year = self.format_lufthansa_date(self.itinerary['departure_date'])
@@ -65,7 +65,7 @@ class LufthansaScraper(Scraper):
         cabin_identifier = self.itinerary['fare_brand'][0]
         departure_row.find_element_by_xpath(
             f'.//div[@class="container cabin{cabin_identifier} ng-star-inserted"]/div/input').click()
-        sleep(3)
+        sleep(5)
         departure_price_container = departure_row.find_element_by_xpath(
             f'.//*[contains(text(),\"{self.itinerary["fare_brand"]}\")]/ancestor::cont-fare')
         if self.itinerary['fare_brand'] != 'Economy Light':
@@ -75,7 +75,7 @@ class LufthansaScraper(Scraper):
         # Remove bot detection cookie #
         self.driver.delete_cookie('ak_bmsc')
         self.driver.find_element_by_xpath('//span[text()="Avanti"]').click()
-        sleep(3)
+        sleep(5)
         # Select return #
         return_row = self.driver.find_element_by_xpath(
             f'//*[contains(text(), "{self.itinerary["return_time"]}")]/ancestor::pres-avail')
@@ -84,7 +84,7 @@ class LufthansaScraper(Scraper):
         cabin_identifier = self.itinerary['fare_brand'][0]
         return_row.find_element_by_xpath(
             f'.//div[@class="container cabin{cabin_identifier} ng-star-inserted"]/div/input').click()
-        sleep(3)
+        sleep(5)
         return_price_container = return_row.find_element_by_xpath(
             f'.//*[contains(text(),\"{self.itinerary["fare_brand"]}\")]/ancestor::cont-fare')
         if self.itinerary['fare_brand'] != 'Economy Light':
@@ -94,7 +94,7 @@ class LufthansaScraper(Scraper):
         # Remove bot detection cookie #
         self.driver.delete_cookie('ak_bmsc')
         self.driver.find_element_by_xpath('//span[text()="Avanti"]').click()
-        sleep(3)
+        sleep(5)
         total_price_box = self.driver.find_element_by_css_selector(
             '[class="shopping-cart-total-price__totalPrice ng-scope ng-isolate-scope"]')
         total_price = total_price_box.text[:-4].replace(',', '.')
@@ -116,15 +116,15 @@ class LufthansaScraper(Scraper):
 
     def scroll_to_month(self, month: str):
         """Scroll to required month for Lufthansa date picker."""
-        visible_month = self.visible_month()
+        visible_month = self.get_visible_month()
         next_month_button = self.driver.find_element_by_css_selector('[aria-label="Vai al mese successivo."]')
         while month not in visible_month:
             next_month_button.click()
-            visible_month = self.visible_month()
+            sleep(1)
+            visible_month = self.get_visible_month()
 
-    def visible_month(self) -> str:
+    def get_visible_month(self) -> str:
         """Get visible month for Lufthansa date picker."""
-        webelements = self.driver.find_elements_by_tag_name('strong')
-        for webelement in webelements:
-            if '2021' in webelement.text:
-                return webelement.text
+        first_month_table = self.driver.find_element_by_xpath(
+            '//div[@class="CalendarMonth CalendarMonth_1"][@data-visible="true"]')
+        return first_month_table.find_element_by_xpath('.//strong').text

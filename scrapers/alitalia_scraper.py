@@ -55,8 +55,11 @@ class AlitaliaScraper(Scraper):
 
     def get_ak_bmsc_valid_value(self) -> str:
         """Get valid value for ak_bmsc cookie."""
-        webbrowser.open_new(self.carrier_url)
-        cookie_jar = browser_cookie3.chrome()
+        # HACK: bypass error > browser_cookie3.BrowserCookieError: Unable to get key for cookie decryption
+        webbrowser.get('firefox').open_new(self.carrier_url)
+        cookie_jar = browser_cookie3.firefox()
+        # webbrowser.open_new(self.carrier_url)
+        # cookie_jar = browser_cookie3.chrome()
         os.system("wmctrl -c :ACTIVE:")  # close chrome window used to get valid cookie
         ak_bmsc_new_value = None
         for cookie in cookie_jar:
