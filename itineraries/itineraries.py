@@ -16,7 +16,7 @@ ALITALIA_ITINERARIES = [{'carrier': 'Alitalia', 'fare_brand': 'Economy Light',
 
 RYANAIR_ITINERARIES = [{'carrier': 'Ryanair', 'fare_brand': 'Regular',
                         'origin': 'FCO', 'destination': 'CTA',
-                        'departure_date': '16/07/2021', 'departure_time': '17:00',
+                        'departure_date': '16/07/2021', 'departure_time': '17:50',
                         'return_date': '18/07/2021', 'return_time': '20:10'}]
 
 LUFTHANSA_ITINERARIES = [{'carrier': 'Lufthansa', 'fare_brand': 'Economy Light',
