@@ -110,7 +110,7 @@ class RyanairScraper(Scraper):
         try:
             seats_left = int(flight_row.find_element_by_xpath(
                 './/span[contains(text(),"a questo prezzo")]').text.split(' ')[0])
-        except NoSuchElementException:
+        except (NoSuchElementException, ValueError):
             seats_left = 9
         self.itinerary.update({'seats_left': seats_left})
         departure_flight_number = flight_row.find_element_by_css_selector(
@@ -133,7 +133,7 @@ class RyanairScraper(Scraper):
         try:
             seats_left = int(flight_row.find_element_by_xpath(
                 './/span[contains(text(),"a questo prezzo")]').text.split(' ')[0])
-        except NoSuchElementException:
+        except (NoSuchElementException, ValueError):
             seats_left = 9
         self.itinerary.update({'seats_left': seats_left})
         return_flight_number = flight_row.find_element_by_css_selector(
@@ -163,7 +163,7 @@ class RyanairScraper(Scraper):
         try:
             seats_left = int(flight_row.find_element_by_xpath(
                 './/span[contains(text(),"a questo prezzo")]').text.split(' ')[0])
-        except NoSuchElementException:
+        except (NoSuchElementException, ValueError):
             seats_left = 9
         self.itinerary.update({'seats_left': seats_left})
         base_price = float(flight_row.text.split('\n')[-1][:-2].replace(',', '.'))
@@ -181,12 +181,13 @@ class RyanairScraper(Scraper):
         fare_box.click()
         sleep(3)
         # Select return flight #
-        flight_row = self.driver.find_element_by_xpath(
-            f'//*[text()=" {self.itinerary["return_time"]} "]/ancestor::flight-card')
+        flight_row = self.driver.find_elements_by_xpath(
+            f'//*[text()=" {self.itinerary["return_time"]} "]/ancestor::flight-card')[1]
+        # self.driver.execute_script("arguments[0].scrollIntoView();", flight_row)
         try:
             seats_left = int(flight_row.find_element_by_xpath(
                 './/span[contains(text(),"a questo prezzo")]').text.split(' ')[0])
-        except NoSuchElementException:
+        except (NoSuchElementException, ValueError):
             seats_left = 9
         if seats_left < self.itinerary['seats_left']:
             self.itinerary.update({'seats_left': seats_left})
