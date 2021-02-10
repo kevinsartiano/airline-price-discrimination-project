@@ -84,7 +84,7 @@ class Scraper(ABC):
                 except InvalidCookieDomainException:
                     continue
         except FileNotFoundError:
-            logging.warning(f'{self.identifier} | Cookie file is missing.')
+            logging.warning(f'{self.identifier} | No previous cookies to load.')
 
     def save_cookies(self):
         """Save cookies for future sessions."""
