@@ -63,8 +63,8 @@ def export_to_csv(scraper, dirname: str = OUTPUT_FOLDER, basename: str = 'raw_da
         if sheet.dimensions == 'A1:A1':
             sheet.append(list(data.keys()))
         sheet.append(list(data.values()))
-    except KeyError as error:
-        logging.warning(f'{scraper.identifier} | Missing {error}')
+    except (KeyError, TypeError) as error:
+        logging.warning(f'{scraper.identifier} | Export crashed: {error.__class__.__name__} > {error}')
     adjust_column_width(sheet)
     sheet.freeze_panes = sheet['A2']
     sheet.auto_filter.ref = sheet.dimensions
