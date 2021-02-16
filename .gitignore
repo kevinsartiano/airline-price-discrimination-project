@@ -3,7 +3,10 @@ __pycache__/
 _extra*
 drivers/*
 venv/
+*.aux
+*.gz
 *.json
 *.log
 *.pkl
+*.toc
 *.xlsx

@@ -1,0 +1,46 @@
+\author{By Kevin Sartiano}
+\date{14/02/2021}
+
+% Preamble
+\documentclass[a4paper,12pt,oneside,openany]{book}
+\linespread{1.5}
+\frontmatter
+
+% Packages
+\usepackage[T1]{fontenc}                                                        % font encoding
+\usepackage[utf8]{inputenc}                                                     % keyboard accented letters
+\usepackage[italian,english]{babel}                                             % document languages
+\usepackage[a4paper, heightrounded, bindingoffset=5mm,
+            top=2.5cm, bottom=2.5cm, left=2.5cm, right=2.5cm]{geometry}         % document layout
+\usepackage{graphicx}                                                           % load images
+\usepackage{multicol}                                                           % divede in multiple columns
+\usepackage{afterpage}
+% \usepackage[hidelinks]{hyperref}                                              % remove links' red rectangles
+\usepackage{titlesec}                                                           % edit title format
+
+\titleformat{\chapter}{\normalfont\LARGE\bfseries}{\thechapter}{1em}{}            % chapter format
+\titlespacing*{\chapter}{0pt}{3.5ex plus 1ex minus .2ex}{2.3ex plus .2ex}       % chapter spacing
+
+% Document
+\begin{document}
+
+    \pagestyle{plain}
+
+    % Front page
+    \input{papers/Cover}
+
+    % Acknowledgements
+    \input{papers/Acknowledgements}
+
+    % Indexes
+    \tableofcontents
+
+    % Abstract
+    \include{papers/Summary}
+
+    \mainmatter
+
+    % Introduction
+    \include{papers/Introduction}
+
+\end{document}
