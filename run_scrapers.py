@@ -25,20 +25,23 @@ if __name__ == '__main__':
         start_time = time.time()
         logger.info(f'{carrier} scraping session started'.upper())
         for user in USER_LIST:
-            subprocess.run(['nordvpn', 'disconnect'])
-            time.sleep(5)
-            subprocess.run(['nordvpn', 'connect', f'{user["vpn_server"]}'])
-            time.sleep(5)
             try:
-                ip_address = requests.get('https://ifconfig.me').text
-            except requests.exceptions.ConnectionError:
-                ip_address = 'Error'
-            if ip_address != user["ip_address"]:
-                logger.error(f'{user["user"]}: IP address should be {user["ip_address"]} instead of {ip_address}!')
-            for itinerary in ITINERARIES[carrier]:
-                scraper = scraper_class(user=user, selenium_browser='Chrome', itinerary=itinerary)
-                scraper.scrape()
+                subprocess.run(['nordvpn', 'disconnect'])
                 time.sleep(5)
+                subprocess.run(['nordvpn', 'connect', f'{user["vpn_server"]}'])
+                time.sleep(5)
+                try:
+                    ip_address = requests.get('https://ifconfig.me').text
+                except requests.exceptions.ConnectionError:
+                    ip_address = 'Error'
+                if ip_address != user["ip_address"]:
+                    logger.error(f'{user["user"]}: IP address should be {user["ip_address"]} instead of {ip_address}!')
+                for itinerary in ITINERARIES[carrier]:
+                    scraper = scraper_class(user=user, selenium_browser='Chrome', itinerary=itinerary)
+                    scraper.scrape()
+                    time.sleep(5)
+            except Exception as e:
+                logger.error(f'Error: {e}')
         logger.info(f'{carrier} scraping session completed in {timedelta(seconds=round(time.time() - start_time))}')
         logger.info('- - - - - - - - - - - - - - - - - - - - - -')
         time.sleep(5)
