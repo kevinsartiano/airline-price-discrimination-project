@@ -95,8 +95,7 @@ class LufthansaScraper(Scraper):
         self.driver.delete_cookie('ak_bmsc')
         self.driver.find_element_by_xpath('//span[text()="Avanti"]').click()
         sleep(5)
-        total_price_box = self.driver.find_element_by_css_selector(
-            '[class="shopping-cart-total-price__totalPrice ng-scope ng-isolate-scope"]')
+        total_price_box = self.driver.find_element_by_css_selector('[class="totalPrice"]')
         total_price = total_price_box.text[:-4].replace(',', '.')
         self.itinerary.update({'total_price': total_price})
         fare_basis_node = self.driver.execute_script('return clientSideData')
