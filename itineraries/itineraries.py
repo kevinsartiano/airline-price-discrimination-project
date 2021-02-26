@@ -21,7 +21,7 @@ RYANAIR_ITINERARIES = [{'carrier': 'Ryanair', 'fare_brand': 'Regular',
 
 LUFTHANSA_ITINERARIES = [{'carrier': 'Lufthansa', 'fare_brand': 'Economy Light',
                           'origin': 'FCO', 'destination': 'MUC',
-                          'departure_date': '23/07/2021', 'departure_time': '19:15',
-                          'return_date': '25/07/2021', 'return_time': '16:55'}]
+                          'departure_date': '23/07/2021', 'departure_time': '18:05',
+                          'return_date': '25/07/2021', 'return_time': '20:25'}]
 
 ITINERARIES = {'Alitalia': ALITALIA_ITINERARIES, 'Ryanair': RYANAIR_ITINERARIES, 'Lufthansa': LUFTHANSA_ITINERARIES}
