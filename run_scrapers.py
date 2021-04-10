@@ -2,8 +2,10 @@
 import os
 import subprocess
 import time
-import requests
 from datetime import timedelta
+
+import requests
+
 from itineraries.itineraries import ITINERARIES
 from scrapers.alitalia_scraper import AlitaliaScraper
 from scrapers.lufthansa_scraper import LufthansaScraper
@@ -12,9 +14,11 @@ from tools.logger_tool import get_logger
 from tools.spreadsheet_tool import OUTPUT_FOLDER
 from users.user_profiles import USER_LIST
 
-# HACK: for testing
-# CARRIER_SCRAPERS = {'Ryanair': RyanairScraper}
-CARRIER_SCRAPERS = {'Alitalia': AlitaliaScraper, 'Ryanair': RyanairScraper, 'Lufthansa': LufthansaScraper}
+CARRIER_SCRAPERS = {
+    'Alitalia': AlitaliaScraper,
+    'Ryanair': RyanairScraper,
+    'Lufthansa': LufthansaScraper
+}
 
 
 if __name__ == '__main__':
@@ -31,19 +35,23 @@ if __name__ == '__main__':
                 subprocess.run(['nordvpn', 'connect', f'{user["vpn_server"]}'])
                 time.sleep(5)
                 try:
-                    ip_address = requests.get('https://ifconfig.me').text
+                    ip_address = os.popen('curl -s ifconfig.me').read()
                 except requests.exceptions.ConnectionError:
                     ip_address = 'Error'
                 if ip_address != user["ip_address"]:
-                    logger.error(f'{user["user"]}: IP address should be {user["ip_address"]} instead of {ip_address}!')
+                    logger.error(f'{user["user"]}: IP address should be {user["ip_address"]} '
+                                 f'instead of {ip_address}!')
                 for itinerary in ITINERARIES[carrier]:
-                    scraper = scraper_class(user=user, selenium_browser='Chrome', itinerary=itinerary)
+                    scraper = scraper_class(
+                        user=user, selenium_browser='Chrome', itinerary=itinerary)
                     scraper.scrape()
                     time.sleep(5)
             except Exception as e:
                 logger.error(f'Error: {e}')
-        logger.info(f'{carrier} scraping session completed in {timedelta(seconds=round(time.time() - start_time))}')
+        logger.info(f'{carrier} scraping session completed in '
+                    f'{timedelta(seconds=round(time.time() - start_time))}')
         logger.info('- - - - - - - - - - - - - - - - - - - - - -')
         time.sleep(5)
-    logger.info(f'Total scraping completed in {timedelta(seconds=round(time.time() - total_start_time))}')
+    logger.info(f'Total scraping completed in '
+                f'{timedelta(seconds=round(time.time() - total_start_time))}')
     logger.info('<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<')

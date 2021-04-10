@@ -4,7 +4,8 @@ import os
 WINDOWS_CHROME_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ' \
                     'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Safari/537.36'
 ANDROID_CHROME_UA = 'Mozilla/5.0 (Linux; Android 10; M2007J3SG) ' \
-                    'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Mobile Safari/537.36'
+                    'AppleWebKit/537.36 (KHTML, like Gecko) ' \
+                    'Chrome/87.0.4280.141 Mobile Safari/537.36'
 MACOS_SAFARI_UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) ' \
                   'AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0.2 Safari/605.1.15'
 IOS_SAFARI_UA = 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_3 like Mac OS X) ' \

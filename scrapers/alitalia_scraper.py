@@ -1,10 +1,12 @@
 """Alitalia Scraper."""
 import os
 import webbrowser
-import browser_cookie3
 from time import sleep
+
+import browser_cookie3
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
+
 from scrapers.scraper import Scraper, ITALIAN_MONTH
 
 
@@ -33,10 +35,10 @@ class AlitaliaScraper(Scraper):
         destination_selector.send_keys(self.itinerary['destination'])
         self.driver.find_element_by_id('data-andata--prenota-desk').click()
         if self.user['user'] in ['Android-Chrome', 'iOS-Safari']:
-            day, month, year = self.format_alitalia_date(self.itinerary['departure_date'])
+            day, month = self.format_alitalia_date(self.itinerary['departure_date'])
             self.scroll_to_month(month.capitalize())
             self.driver.find_element_by_xpath(f'//a[text()="{day}"]').click()
-            day, month, year = self.format_alitalia_date(self.itinerary['return_date'])
+            day, month = self.format_alitalia_date(self.itinerary['return_date'])
             self.driver.find_element_by_xpath(f'//a[text()="{day}"]').click()
         else:
             departure_date_selector.send_keys(self.itinerary['departure_date'])
@@ -55,7 +57,8 @@ class AlitaliaScraper(Scraper):
 
     def get_ak_bmsc_valid_value(self) -> str:
         """Get valid value for ak_bmsc cookie."""
-        # HACK: bypass error > browser_cookie3.BrowserCookieError: Unable to get key for cookie decryption
+        # HACK: bypass error > browser_cookie3.BrowserCookieError:
+        #  Unable to get key for cookie decryption
         webbrowser.get('firefox').open_new(self.carrier_url)
         cookie_jar = browser_cookie3.firefox()
         # webbrowser.open_new(self.carrier_url)
@@ -76,8 +79,8 @@ class AlitaliaScraper(Scraper):
         date_list = date.split('/')
         day = int(date_list[0])
         month = int(date_list[1])
-        year = int(date_list[2])
-        return f'{day:02d}', ITALIAN_MONTH[month], str(year)
+        # year = int(date_list[2])
+        return f'{day:02d}', ITALIAN_MONTH[month]
 
     def scroll_to_month(self, month: str):
         """Scroll to required month for Alitalia date picker."""
@@ -94,11 +97,13 @@ class AlitaliaScraper(Scraper):
     def get_price(self):
         """Get price for selected flight."""
         # Get departure price #
-        departure_node = self.wait_for_element(By.CSS_SELECTOR, ec.presence_of_element_located,
-                                               f'[data-flight-time=\"{self.itinerary["departure_time"]}\"]'
-                                               f'[data-flight-brandname=\"{self.itinerary["fare_brand"]}\"]')
-        self.itinerary.update({'departure_price': departure_node.get_attribute('data-flight-price'),
-                               'departure_flight': departure_node.get_attribute('data-flight-number')})
+        departure_node = self.wait_for_element(
+            By.CSS_SELECTOR, ec.presence_of_element_located,
+            f'[data-flight-time=\"{self.itinerary["departure_time"]}\"]'
+            f'[data-flight-brandname=\"{self.itinerary["fare_brand"]}\"]')
+        self.itinerary.update(
+            {'departure_price': departure_node.get_attribute('data-flight-price'),
+             'departure_flight': departure_node.get_attribute('data-flight-number')})
         departure_node.click()
         sleep(5)
         select_button = self.wait_for_element(By.CSS_SELECTOR, ec.element_to_be_clickable,
@@ -108,13 +113,15 @@ class AlitaliaScraper(Scraper):
         # Show hidden flights #
         load_more_button = self.wait_for_element(
             By.XPATH, ec.element_to_be_clickable,
-            '//a[@data-details-route="1"][@class="bookingTable__bodyRowLoadMoreLink j-loadMoreBookingRow"]')
+            '//a[@data-details-route="1"]'
+            '[@class="bookingTable__bodyRowLoadMoreLink j-loadMoreBookingRow"]')
         self.driver.execute_script("arguments[0].scrollIntoView();", load_more_button)
         load_more_button.click()
         # Get return price #
-        return_node = self.wait_for_element(By.CSS_SELECTOR, ec.presence_of_element_located,
-                                            f'[data-flight-time=\"{self.itinerary["return_time"]}\"]'
-                                            f'[data-flight-brandname=\"{self.itinerary["fare_brand"]}\"]')
+        return_node = self.wait_for_element(
+            By.CSS_SELECTOR, ec.presence_of_element_located,
+            f'[data-flight-time=\"{self.itinerary["return_time"]}\"]'
+            f'[data-flight-brandname=\"{self.itinerary["fare_brand"]}\"]')
         self.itinerary.update({'return_price': return_node.get_attribute('data-flight-price'),
                                'return_flight': return_node.get_attribute('data-flight-number')})
         self.driver.execute_script("arguments[0].scrollIntoView();", return_node)
@@ -125,7 +132,8 @@ class AlitaliaScraper(Scraper):
         select_button.click()
         sleep(10)
         # Get total price
-        total_price_box = self.wait_for_element(By.ID, ec.presence_of_element_located, 'basketPrice-text')
+        total_price_box = self.wait_for_element(
+            By.ID, ec.presence_of_element_located, 'basketPrice-text')
         total_price = total_price_box.text[2:].replace(',', '.')
         self.itinerary.update({'total_price': total_price})
         fare_basis_node = self.driver.execute_script('return fp_data')

@@ -49,7 +49,8 @@ def export_to_csv(scraper, dirname: str = OUTPUT_FOLDER, basename: str = 'raw_da
     Parameters:
         scraper (Scraper): scraper containing the data to export
         basename (str): file name. Example: /foo_1/foo_2/bar.xlsx -> bar
-        dirname (str): directory path (defaults to 'output'). Example: /foo_1/foo_2/bar.xlsx -> /foo_1/foo_2
+        dirname (str): directory path (defaults to 'output').
+                        Example: /foo_1/foo_2/bar.xlsx -> /foo_1/foo_2
     """
     path = os.path.join(dirname, basename + '.xlsx')
     try:
@@ -64,7 +65,8 @@ def export_to_csv(scraper, dirname: str = OUTPUT_FOLDER, basename: str = 'raw_da
             sheet.append(list(data.keys()))
         sheet.append(list(data.values()))
     except (KeyError, TypeError) as error:
-        logging.warning(f'{scraper.identifier} | Export crashed: {error.__class__.__name__} > {error}')
+        logging.warning(f'{scraper.identifier} | '
+                        f'Export crashed: {error.__class__.__name__} > {error}')
     adjust_column_width(sheet)
     sheet.freeze_panes = sheet['A2']
     sheet.auto_filter.ref = sheet.dimensions
@@ -99,7 +101,7 @@ def to_time(text: str) -> datetime or str:
 
 def adjust_column_width(sheet: Worksheet):
     """Adjust the columns' width."""
-    for i, column_cells in enumerate(sheet.columns, 1):
+    for column_cells in sheet.columns:
         length = max(len(str(cell.value)) for cell in column_cells)
         sheet.column_dimensions[column_cells[0].column_letter].width = length + 3
     for row in sheet.iter_rows(max_col=2):

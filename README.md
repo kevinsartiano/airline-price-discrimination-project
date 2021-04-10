@@ -5,8 +5,10 @@ Collection of scripts to gather data for my bachelor's thesis on price discrimin
 Before you can run the script, you must install the requirements as follows:
 
 ```
-pip install requirements.txt
+pip install -r requirements.txt
 ```
+Download the latest Chrome webdriver for your OS from [here](https://sites.google.com/a/chromium.org/chromedriver/downloads)
+and place it in the  *./drivers* folder.
 
 ## Run Scrapers
 

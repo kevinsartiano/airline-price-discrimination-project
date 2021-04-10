@@ -4,6 +4,7 @@ from time import sleep
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
+
 from scrapers.scraper import Scraper, ITALIAN_MONTH
 
 
@@ -15,9 +16,11 @@ class RyanairScraper(Scraper):
 
     def get_availability(self):
         """Get Ryanair availability."""
-        self.driver.find_element_by_css_selector('[class="cookie-popup-with-overlay__button"]').click()
+        self.driver.find_element_by_css_selector(
+            '[class="cookie-popup-with-overlay__button"]').click()
         # Input origin airport #
-        if self.user['user'] in ['Android-Chrome', 'iOS-Safari', 'Android-Chrome(control)', 'iOS-Safari(control)']:
+        if self.user['user'] in ['Android-Chrome', 'iOS-Safari',
+                                 'Android-Chrome(control)', 'iOS-Safari(control)']:
             self.mobile_search()
         else:
             self.desktop_search()
@@ -26,18 +29,23 @@ class RyanairScraper(Scraper):
         """Start search for mobile user profile."""
         self.driver.find_element_by_css_selector('[aria-label="Inizia a cercare"]').click()
         sleep(3)
-        self.driver.find_element_by_css_selector('[data-ref="flight-search-controls__route-from"]').click()
+        self.driver.find_element_by_css_selector(
+            '[data-ref="flight-search-controls__route-from"]').click()
         sleep(3)
-        origin_selector = self.driver.find_element_by_css_selector('[data-ref="search-filter__input"]')
+        origin_selector = self.driver.find_element_by_css_selector(
+            '[data-ref="search-filter__input"]')
         origin_selector.send_keys(self.itinerary['origin'])
         self.driver.find_element_by_css_selector('[class="airport__name h3"]').click()
-        self.driver.find_element_by_css_selector('[data-ref="flight-search-controls__route-to"]').click()
+        self.driver.find_element_by_css_selector(
+            '[data-ref="flight-search-controls__route-to"]').click()
         sleep(3)
-        destination_selector = self.driver.find_element_by_css_selector('[data-ref="search-filter__input"]')
+        destination_selector = self.driver.find_element_by_css_selector(
+            '[data-ref="search-filter__input"]')
         destination_selector.send_keys(self.itinerary['destination'])
         self.driver.find_element_by_css_selector('[class="airport__name h3"]').click()
         sleep(3)
-        self.driver.find_element_by_css_selector('[data-ref="flight-search-controls__calendar"]').click()
+        self.driver.find_element_by_css_selector(
+            '[data-ref="flight-search-controls__calendar"]').click()
         day, month, year = self.format_date(self.itinerary['departure_date'])
         while ITALIAN_MONTH[int(month)].capitalize() not in self.driver.find_element_by_tag_name(
                 'ry-datepicker').text:
@@ -61,17 +69,20 @@ class RyanairScraper(Scraper):
         origin_selector.clear()
         origin_selector.send_keys(self.itinerary['origin'])
         self.wait_for_element(
-            By.CSS_SELECTOR, ec.element_to_be_clickable, f'[data-id="{self.itinerary["origin"]}"]').click()
+            By.CSS_SELECTOR, ec.element_to_be_clickable,
+            f'[data-id="{self.itinerary["origin"]}"]').click()
         sleep(3)
         # Input destination airport #
         destination_selector = self.driver.find_element_by_id('input-button__destination')
         destination_selector.send_keys(self.itinerary['destination'])
         self.wait_for_element(
-            By.CSS_SELECTOR, ec.element_to_be_clickable, f'[data-id="{self.itinerary["destination"]}"]').click()
+            By.CSS_SELECTOR, ec.element_to_be_clickable,
+            f'[data-id="{self.itinerary["destination"]}"]').click()
         sleep(3)
         # Select departure date #
         day, month, year = self.format_date(self.itinerary['departure_date'])
-        self.driver.find_element_by_xpath(f'//div[text()=" {ITALIAN_MONTH[int(month)][:3]} "]').click()
+        self.driver.find_element_by_xpath(
+            f'//div[text()=" {ITALIAN_MONTH[int(month)][:3]} "]').click()
         self.driver.find_element_by_css_selector(f'[data-id="{year}-{month}-{day}"]').click()
         # Select return date #
         day, month, year = self.format_date(self.itinerary['return_date'])
@@ -79,8 +90,9 @@ class RyanairScraper(Scraper):
         sleep(3)
         # TODO: select number of passengers
         # Select passengers #
-        # self.driver.find_element_by_xpath('//ry-counter[@data-ref="passengers-picker__adults"]/'
-        #                                   'div/div[@data-ref="counter.counter__increment"]').click()
+        # self.driver.find_element_by_xpath(
+        #     '//ry-counter[@data-ref="passengers-picker__adults"]/'
+        #     'div/div[@data-ref="counter.counter__increment"]').click()
         # sleep(3)
         # Submit search #
         self.driver.find_element_by_xpath('//*[text()=" Cerca "]').click()
@@ -97,7 +109,8 @@ class RyanairScraper(Scraper):
 
     def get_price(self):
         """Get Ryanair price."""
-        if self.user['user'] in ['Android-Chrome', 'iOS-Safari', 'Android-Chrome(control)', 'iOS-Safari(control)']:
+        if self.user['user'] in ['Android-Chrome', 'iOS-Safari',
+                                 'Android-Chrome(control)', 'iOS-Safari(control)']:
             self.get_mobile_price()
         else:
             self.get_desktop_price()
@@ -106,7 +119,8 @@ class RyanairScraper(Scraper):
         """Get Ryanair mobile price."""
         # Select departure flight #
         flight_row = self.driver.find_element_by_xpath(
-            f'//*[contains(text()," {self.itinerary["departure_time"]}")]/ancestor::flights-flight-card')
+            f'//*[contains(text()," {self.itinerary["departure_time"]}")]/'
+            f'ancestor::flights-flight-card')
         try:
             seats_left = int(flight_row.find_element_by_xpath(
                 './/span[contains(text(),"a questo prezzo")]').text.split(' ')[0])
@@ -120,7 +134,8 @@ class RyanairScraper(Scraper):
         sleep(3)
         fare_box = self.driver.find_element_by_css_selector(
             f'[data-e2e="fare-card--{self.itinerary["fare_brand"].lower()}"]')
-        fare_price_box_text = fare_box.find_element_by_css_selector('[class="fare-card__header"]').text.split("\n")
+        fare_price_box_text = fare_box.find_element_by_css_selector(
+            '[class="fare-card__header"]').text.split("\n")
         departure_price = f'{fare_price_box_text[-4]}.{fare_price_box_text[-2]}'
         self.itinerary.update({'departure_price': departure_price})
         fare_box.find_element_by_css_selector('[class="fare-card__header"]').click()
@@ -129,7 +144,8 @@ class RyanairScraper(Scraper):
         sleep(3)
         # Select return flight #
         flight_row = self.driver.find_element_by_xpath(
-            f'//*[contains(text()," {self.itinerary["return_time"]}")]/ancestor::flights-flight-card')
+            f'//*[contains(text()," {self.itinerary["return_time"]}")]/'
+            f'ancestor::flights-flight-card')
         try:
             seats_left = int(flight_row.find_element_by_xpath(
                 './/span[contains(text(),"a questo prezzo")]').text.split(' ')[0])
@@ -143,7 +159,8 @@ class RyanairScraper(Scraper):
         sleep(3)
         fare_box = self.driver.find_element_by_css_selector(
             f'[data-e2e="fare-card--{self.itinerary["fare_brand"].lower()}"]')
-        fare_price_box_text = fare_box.find_element_by_css_selector('[class="fare-card__header"]').text.split("\n")
+        fare_price_box_text = fare_box.find_element_by_css_selector(
+            '[class="fare-card__header"]').text.split("\n")
         return_price = f'{fare_price_box_text[-4]}.{fare_price_box_text[-2]}'
         self.itinerary.update({'return_price': return_price})
         fare_box.find_element_by_css_selector('[class="fare-card__header"]').click()
@@ -212,11 +229,10 @@ class RyanairScraper(Scraper):
 
     def get_control_price(self):
         """Unable to use Amadeus API for Ryanair's control price."""
-        # HACK: missing feature
-        self.itinerary.update({'seats_left': -1})
         control_user = self.user.copy()
         control_user['user'] += '(control)'
-        control_scraper = RyanairScraper(user=control_user, selenium_browser='Chrome', itinerary=self.itinerary,
+        control_scraper = RyanairScraper(user=control_user, selenium_browser='Chrome',
+                                         itinerary=self.itinerary.copy(),
                                          run_with_cookies=False, export=False)
         control_scraper.scrape()
         self.itinerary.update({'control_price': control_scraper.itinerary['total_price'],
