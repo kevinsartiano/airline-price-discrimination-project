@@ -1,6 +1,6 @@
-# Airline Price Discrimination Thesis
+# Airline Price Discrimination Project
 
-Collection of scripts to gather data for my bachelor's thesis on price discrimination in the airline market.
+Collection of scripts to gather data for a project in price discrimination in the airline market.
 
 Before you can run the script, you must install the requirements as follows:
 
